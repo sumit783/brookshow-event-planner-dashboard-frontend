@@ -12,10 +12,13 @@ import {
   Wifi,
   WifiOff,
   AlertCircle,
+  LogOut,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useSyncStatus } from '@/hooks/useSyncStatus';
+import { useAuth } from '@/contexts/AuthContext';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 
 interface LayoutProps {
   children: ReactNode;
@@ -34,6 +37,7 @@ const navItems = [
 
 export function Layout({ children }: LayoutProps) {
   const { isOnline, pendingCount } = useSyncStatus();
+  const { user, logout } = useAuth();
 
   return (
     <div className="flex min-h-screen w-full bg-gradient-dark">
@@ -79,7 +83,20 @@ export function Layout({ children }: LayoutProps) {
           </nav>
 
           {/* Status Footer */}
-          <div className="border-t border-sidebar-border p-4">
+          <div className="border-t border-sidebar-border p-4 space-y-3">
+            {/* User Info */}
+            {user && (
+              <div className="px-2 py-1.5 rounded-md bg-sidebar-accent/50">
+                <div className="text-xs font-medium text-sidebar-foreground truncate">
+                  {user.name || user.email}
+                </div>
+                <div className="text-xs text-sidebar-foreground/60 truncate">
+                  {user.email}
+                </div>
+              </div>
+            )}
+            
+            {/* Status */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 {isOnline ? (
@@ -101,6 +118,17 @@ export function Layout({ children }: LayoutProps) {
                 </Badge>
               )}
             </div>
+            
+            {/* Logout Button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full justify-start text-sidebar-foreground/80 hover:text-sidebar-foreground hover:bg-white/5"
+              onClick={logout}
+            >
+              <LogOut className="mr-2 h-4 w-4" />
+              Logout
+            </Button>
           </div>
         </div>
       </aside>

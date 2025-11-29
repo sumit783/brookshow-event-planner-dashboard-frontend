@@ -1,5 +1,7 @@
 export const config = {
   API_BASE_URL: '/api',
+  API_BASE_URI: import.meta.env.VITE_API_BASE_URI || 'https://api.brookshow.com', // Update with actual API base URI
+  X_API_KEY: import.meta.env.VITE_X_API_KEY || '', // Add your API key here or via environment variable
   
   // Testing flags
   SIMULATE_OFFLINE: false,
@@ -16,4 +18,7 @@ export const config = {
   // App metadata
   APP_NAME: 'BrookShow Event Planner',
   APP_VERSION: '1.0.0',
+  
+  // Website URL
+  WEBSITE_URL: 'https://brookshow.com', // Update with actual website URL
 } as const;

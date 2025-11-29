@@ -3,8 +3,13 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "./contexts/AuthContext";
+import { ProtectedRoute } from "./components/ProtectedRoute";
 import { Layout } from "./components/Layout";
 import { initializeDefaultData } from "./services/storage";
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
+import VerifyOtp from "./pages/VerifyOtp";
 import Dashboard from "./pages/Dashboard";
 import EventsList from "./pages/EventsList";
 import TicketSales from "./pages/TicketSales";
@@ -25,19 +30,101 @@ const App = () => {
   return (
     <BrowserRouter>
       <QueryClientProvider client={queryClient}>
-        <Toaster />
-        <Sonner />
-        <Routes>
-          <Route path="/" element={<Layout><Dashboard /></Layout>} />
-          <Route path="/events" element={<Layout><EventsList /></Layout>} />
-          <Route path="/tickets" element={<Layout><TicketSales /></Layout>} />
-          <Route path="/scanner" element={<Layout><ScannerPage /></Layout>} />
-          <Route path="/artists" element={<Layout><Artists /></Layout>} />
-          <Route path="/artists/:id" element={<Layout><ArtistProfile /></Layout>} />
-          <Route path="/reports" element={<Layout><Reports /></Layout>} />
-          <Route path="/settings" element={<Layout><Settings /></Layout>} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <AuthProvider>
+          <Toaster />
+          <Sonner />
+          <Routes>
+            {/* Public routes */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/verify-otp" element={<VerifyOtp />} />
+            
+            {/* Protected routes */}
+            <Route
+              path="/"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <Dashboard />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/events"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <EventsList />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/tickets"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <TicketSales />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/scanner"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <ScannerPage />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/artists"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <Artists />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/artists/:id"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <ArtistProfile />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/reports"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <Reports />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/settings"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <Settings />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            
+            {/* Catch all - redirect to login if not authenticated, otherwise 404 */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </AuthProvider>
       </QueryClientProvider>
     </BrowserRouter>
   );
