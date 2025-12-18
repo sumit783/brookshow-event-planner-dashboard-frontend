@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Calendar, Ticket, DollarSign, ScanLine, ArrowRight, TrendingUp, PlusCircle, Users } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { apiClient } from '@/services/apiClient';
+import { eventService } from '@/services/event';
 import { storage, db } from '@/services/storage';
 import type { Event, TicketType, ScanLog } from '@/types';
 
@@ -23,9 +23,9 @@ export default function Dashboard() {
 
   async function loadDashboard() {
     try {
-      const events = await apiClient.listEvents();
+      const events = await eventService.listEvents();
       const now = new Date();
-      const upcoming = events.filter((e) => new Date(e.start) > now && e.published);
+      const upcoming = events.filter((e) => new Date(e.startAt) > now && e.published);
 
       const ticketTypes = await storage.getAll<TicketType>(db.ticketTypes);
       const totalSold = ticketTypes.reduce((sum, tt) => sum + tt.sold, 0);
@@ -150,7 +150,7 @@ export default function Dashboard() {
                   <div className="space-y-1">
                     <p className="font-medium">{event.title}</p>
                     <p className="text-sm text-muted-foreground">
-                      {new Date(event.start).toLocaleDateString('en-US', {
+                      {new Date(event.startAt).toLocaleDateString('en-US', {
                         month: 'short',
                         day: 'numeric',
                         year: 'numeric',

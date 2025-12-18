@@ -12,10 +12,13 @@ import Signup from "./pages/Signup";
 import VerifyOtp from "./pages/VerifyOtp";
 import Dashboard from "./pages/Dashboard";
 import EventsList from "./pages/EventsList";
+import CreateEvent from "./pages/CreateEvent";
+import EventDetails from "./pages/EventDetails";
 import TicketSales from "./pages/TicketSales";
 import ScannerPage from "./pages/ScannerPage";
 import Artists from "./pages/Artists";
 import ArtistProfile from "./pages/ArtistProfile";
+import Employees from "./pages/Employees";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
@@ -61,6 +64,26 @@ const App = () => {
               }
             />
             <Route
+              path="/events/create"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <CreateEvent />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/events/:id"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <EventDetails />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/tickets"
               element={
                 <ProtectedRoute>
@@ -96,6 +119,16 @@ const App = () => {
                 <ProtectedRoute>
                   <Layout>
                     <ArtistProfile />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/employees"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <Employees />
                   </Layout>
                 </ProtectedRoute>
               }

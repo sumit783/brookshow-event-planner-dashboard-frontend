@@ -10,6 +10,7 @@ import type {
   TicketType,
   Ticket,
   Artist,
+  Employee,
   BookingRequest,
   QRPayload,
   ScanLog,
@@ -50,13 +51,13 @@ function getAuthHeaders(): HeadersInit {
   const token = getAuthToken();
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
-    'x_api_key': config.X_API_KEY,
+    'x-api-key': config.X_API_KEY,
   };
-  
+
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
   }
-  
+
   return headers;
 }
 
@@ -77,10 +78,10 @@ export const apiClient = {
         createdAt: Date.now(),
       };
       localStorage.setItem(`signup_${data.email}`, JSON.stringify(signupData));
-      
+
       // Send OTP after signup
       await this.sendOtp(data.email);
-      
+
       // In production, the backend would create the account and send OTP via email
       console.log(`[DEMO] Signup data for ${data.email}:`, signupData);
     });
@@ -92,7 +93,7 @@ export const apiClient = {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x_api_key': config.X_API_KEY,
+          'x-api-key': config.X_API_KEY,
         },
         body: JSON.stringify({ email }),
       });
@@ -137,7 +138,7 @@ export const apiClient = {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x_api_key': config.X_API_KEY,
+          'x-api-key': config.X_API_KEY,
         },
         body: JSON.stringify({
           email,
@@ -187,13 +188,13 @@ export const apiClient = {
       if (config.SIMULATE_OFFLINE || !navigator.onLine) {
         return handleMockRequest('verifyOtp', async () => {
           const storedOtpData = localStorage.getItem(`otp_${email}`);
-          
+
           if (!storedOtpData) {
             throw new Error('OTP not found. Please request a new code.');
           }
 
           const otpData = JSON.parse(storedOtpData);
-          
+
           if (Date.now() > otpData.expiresAt) {
             localStorage.removeItem(`otp_${email}`);
             throw new Error('OTP has expired. Please request a new code.');
@@ -207,7 +208,7 @@ export const apiClient = {
 
           const signupDataStr = localStorage.getItem(`signup_${email}`);
           let displayName = email.split('@')[0];
-          
+
           if (signupDataStr) {
             try {
               const signupData = JSON.parse(signupDataStr);
@@ -244,205 +245,95 @@ export const apiClient = {
     });
   },
 
-  // Events
-  async listEvents(): Promise<Event[]> {
-    return handleMockRequest('listEvents', async () => {
-      return storage.getAll<Event>(db.events);
-    });
-  },
+  // Employees
+  async listEmployees(): Promise<Employee[]> {
+    try {
+      const token = getAuthToken();
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+        'x-api-key': config.X_API_KEY,
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+      };
 
-  async getEvent(id: string): Promise<Event | null> {
-    return handleMockRequest('getEvent', async () => {
-      return storage.get<Event>(db.events, id);
-    });
-  },
+      const response = await fetch(`${config.API_BASE_URI}/api/planner/employees`, {
+        method: 'GET',
+        headers
+      });
 
-  async createEvent(payload: Omit<Event, 'id' | 'createdAt' | 'updatedAt'>): Promise<Event> {
-    const event: Event = {
-      ...payload,
-      id: `event-${Date.now()}`,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-
-    await storage.set(db.events, event.id, event);
-    await addToSyncQueue('createEvent', event);
-
-    return event;
-  },
-
-  async updateEvent(id: string, payload: Partial<Event>): Promise<Event> {
-    const existing = await storage.get<Event>(db.events, id);
-    if (!existing) throw new Error('Event not found');
-
-    const updated: Event = {
-      ...existing,
-      ...payload,
-      updatedAt: new Date().toISOString(),
-    };
-
-    await storage.set(db.events, id, updated);
-    await addToSyncQueue('updateEvent', updated);
-
-    return updated;
-  },
-
-  async publishEvent(id: string, published: boolean): Promise<Event> {
-    return this.updateEvent(id, { published });
-  },
-
-  async deleteEvent(id: string): Promise<void> {
-    await storage.remove(db.events, id);
-    await addToSyncQueue('deleteEvent', { id });
-  },
-
-  // Ticket Types
-  async listTicketTypes(eventId: string): Promise<TicketType[]> {
-    return handleMockRequest('listTicketTypes', async () => {
-      const all = await storage.getAll<TicketType>(db.ticketTypes);
-      return all.filter(tt => tt.eventId === eventId);
-    });
-  },
-
-  async createTicketType(payload: Omit<TicketType, 'id' | 'sold'>): Promise<TicketType> {
-    const ticketType: TicketType = {
-      ...payload,
-      id: `ticket-type-${Date.now()}`,
-      sold: 0,
-    };
-
-    await storage.set(db.ticketTypes, ticketType.id, ticketType);
-    await addToSyncQueue('createTicketType', ticketType);
-
-    return ticketType;
-  },
-
-  async updateTicketType(id: string, payload: Partial<TicketType>): Promise<TicketType> {
-    const existing = await storage.get<TicketType>(db.ticketTypes, id);
-    if (!existing) throw new Error('Ticket type not found');
-
-    const updated: TicketType = {
-      ...existing,
-      ...payload,
-    };
-
-    await storage.set(db.ticketTypes, id, updated);
-    await addToSyncQueue('updateTicketType', updated);
-
-    return updated;
-  },
-
-  // Ticket Purchase
-  async purchaseTicket(
-    eventId: string,
-    ticketTypeId: string,
-    buyer: { name: string; email: string; phone: string }
-  ): Promise<Ticket> {
-    // Get ticket type and validate inventory
-    const ticketType = await storage.get<TicketType>(db.ticketTypes, ticketTypeId);
-    if (!ticketType) throw new Error('Ticket type not found');
-    if (ticketType.sold >= ticketType.quantity) throw new Error('Sold out');
-
-    // Generate QR payload
-    const ticketId = `ticket-${Date.now()}`;
-    const qrPayload: QRPayload = {
-      eventId,
-      ticketId,
-      buyerName: buyer.name,
-      issuedAt: new Date().toISOString(),
-      signature: 'mock-signature-' + ticketId, // TODO: Replace with HMAC in production
-    };
-
-    // Note: QR data URL will be generated separately using qrcode library
-    const ticket: Ticket = {
-      id: ticketId,
-      eventId,
-      ticketTypeId,
-      buyerName: buyer.name,
-      buyerEmail: buyer.email,
-      buyerPhone: buyer.phone,
-      buyerPhoneMasked: buyer.phone.replace(/(\d{3})\d{4}(\d{3})/, '$1****$2'),
-      qrDataUrl: '', // Will be set by caller after QR generation
-      qrPayload: JSON.stringify(qrPayload),
-      issuedAt: qrPayload.issuedAt,
-      scanned: false,
-    };
-
-    // Update inventory
-    await this.updateTicketType(ticketTypeId, {
-      sold: ticketType.sold + 1,
-    });
-
-    // Save ticket
-    await storage.set(db.tickets, ticket.id, ticket);
-    await addToSyncQueue('purchaseTicket', ticket);
-
-    return ticket;
-  },
-
-  // Ticket Scanning
-  async scanTicket(qrPayload: string, scannerId: string): Promise<ScanLog> {
-    return handleMockRequest('scanTicket', async () => {
-      try {
-        const payload: QRPayload = JSON.parse(qrPayload);
-        const ticket = await storage.get<Ticket>(db.tickets, payload.ticketId);
-
-        let result: 'valid' | 'invalid' | 'duplicate' | 'error' = 'invalid';
-        let errorMessage: string | undefined;
-
-        if (!ticket) {
-          result = 'invalid';
-          errorMessage = 'Ticket not found';
-        } else if (ticket.scanned) {
-          result = 'duplicate';
-          errorMessage = `Already scanned at ${ticket.scannedAt}`;
-        } else if (payload.signature !== 'mock-signature-' + payload.ticketId) {
-          // TODO: Replace with HMAC validation in production
-          result = 'invalid';
-          errorMessage = 'Invalid signature';
-        } else {
-          result = 'valid';
-          
-          // Mark ticket as scanned
-          const updated = {
-            ...ticket,
-            scanned: true,
-            scannedAt: new Date().toISOString(),
-            scannerId,
-          };
-          await storage.set(db.tickets, ticket.id, updated);
-        }
-
-        const scanLog: ScanLog = {
-          id: `scan-${Date.now()}`,
-          ticketId: payload.ticketId,
-          scannerId,
-          timestamp: new Date().toISOString(),
-          result,
-          deviceInfo: navigator.userAgent,
-          errorMessage,
-          synced: false,
-        };
-
-        await storage.set(db.scanLogs, scanLog.id, scanLog);
-        await addToSyncQueue('scanTicket', scanLog);
-
-        return scanLog;
-      } catch (error: any) {
-        const scanLog: ScanLog = {
-          id: `scan-${Date.now()}`,
-          scannerId,
-          timestamp: new Date().toISOString(),
-          result: 'error',
-          deviceInfo: navigator.userAgent,
-          errorMessage: error.message || 'Invalid QR code',
-          synced: false,
-        };
-
-        await storage.set(db.scanLogs, scanLog.id, scanLog);
-        return scanLog;
+      if (!response.ok) {
+        throw new Error(`Failed to fetch employees: ${response.statusText}`);
       }
+
+      const data = await response.json();
+      const employees = data.employees || data;
+      return (Array.isArray(employees) ? employees : []).map((emp: any) => ({
+        ...emp,
+        name: emp.displayName || emp.name, // Ensure frontend uses 'name'
+      }));
+    } catch (error) {
+      console.error("Error fetching employees:", error);
+      // Fallback for dev/demo if needed, but error preferred if API is real
+      throw error;
+    }
+  },
+
+  async createEmployee(payload: any): Promise<Employee> {
+    const headers = getAuthHeaders();
+    const response = await fetch(`${config.API_BASE_URI}/api/planner/employees`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(payload)
     });
+
+    if (!response.ok) {
+      const err = await response.json();
+      throw new Error(err.message || 'Failed to create employee');
+    }
+
+    return response.json();
+  },
+
+  async updateEmployee(id: string, payload: Partial<Employee>): Promise<Employee> {
+    const headers = getAuthHeaders();
+    const body = { ...payload };
+    if (body.name) {
+      (body as any).displayName = body.name;
+      delete body.name;
+    }
+
+    const response = await fetch(`${config.API_BASE_URI}/api/planner/employees/${id}`, {
+      method: 'PUT',
+      headers,
+      body: JSON.stringify(body)
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to update employee');
+    }
+
+    return response.json();
+  },
+
+  async deleteEmployee(id: string): Promise<void> {
+    const headers = getAuthHeaders();
+    const response = await fetch(`${config.API_BASE_URI}/api/planner/employees/${id}`, {
+      method: 'DELETE',
+      headers
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to deactivate employee');
+    }
+  },
+
+  async getEmployee(id: string): Promise<Employee> {
+    const headers = getAuthHeaders();
+    const response = await fetch(`${config.API_BASE_URI}/api/planner/employees/${id}`, {
+      headers
+    });
+
+    if (!response.ok) throw new Error('Failed to fetch employee');
+    return response.json();
   },
 
   // Artists
@@ -462,14 +353,16 @@ export const apiClient = {
 
       if (filters.city) {
         artists = artists.filter(a =>
-          a.city.toLowerCase().includes(filters.city!.toLowerCase())
+          a.location.toLowerCase().includes(filters.city!.toLowerCase())
         );
       }
 
       if (filters.query) {
         const q = filters.query.toLowerCase();
         artists = artists.filter(a =>
-          a.name.toLowerCase().includes(q) || a.bio.toLowerCase().includes(q)
+          a.name.toLowerCase().includes(q) ||
+          a.category.toLowerCase().includes(q) ||
+          a.location.toLowerCase().includes(q)
         );
       }
 

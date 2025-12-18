@@ -27,12 +27,8 @@ interface LayoutProps {
 const navItems = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/events', label: 'Events', icon: Calendar },
-  { to: '/events/create', label: 'Create Event', icon: PlusCircle },
-  { to: '/tickets', label: 'Ticket Sales', icon: Ticket },
   { to: '/artists', label: 'Book Artist', icon: Users },
-  { to: '/scanner', label: 'Scanner', icon: ScanLine },
-  { to: '/reports', label: 'Reports', icon: FileText },
-  { to: '/settings', label: 'Settings', icon: Settings },
+  { to: '/employees', label: 'Employees', icon: Users },
 ];
 
 export function Layout({ children }: LayoutProps) {

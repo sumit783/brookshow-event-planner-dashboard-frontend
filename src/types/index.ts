@@ -7,16 +7,24 @@ export interface Planner {
 
 export interface Event {
   id: string;
-  plannerId: string;
+  _id: string;
+  plannerProfileId: string; // "693d766778b2d82b299ae4e7"
   title: string;
-  venue: string;
-  start: string; // ISO date string
-  end: string;
   description: string;
-  images: string[]; // data URLs or URLs
+  venue: string;
+  address: string;
+  city: string;
+  state: string;
+  lat: number;
+  lng: number;
+  startAt: string; // "2025-12-31T18:30:00.000Z"
+  endAt: string; // "2026-01-01T01:30:00.000Z"
   published: boolean;
   createdAt: string;
   updatedAt: string;
+  __v: number;
+  bannerUrl: string; // "/uploads/1765638393445-229183822.png"
+  ticketData: TicketType[];
 }
 
 export interface TicketType {
@@ -26,9 +34,6 @@ export interface TicketType {
   price: number;
   quantity: number;
   sold: number;
-  salesStart?: string;
-  salesEnd?: string;
-  perUserLimit?: number;
 }
 
 export interface Ticket {
@@ -51,12 +56,53 @@ export interface Artist {
   id: string;
   name: string;
   category: string;
-  city: string;
-  bio: string;
-  imageUrl: string;
+  rating: number;
+  location: string;
+  image: string;
+  specialties: string[];
+  price: number;
   price_for_event_planner: number;
-  price_for_artists: number;
-  verified: boolean;
+}
+
+export interface ArtistProfile {
+  _id: string;
+  userId: {
+    _id: string;
+    email: string;
+    phone: string;
+    displayName: string;
+    role: string;
+  };
+  profileImage: string;
+  bio: string;
+  category: string[];
+  location: {
+    city: string;
+    state: string;
+    country: string;
+  };
+  verificationStatus: string;
+  isVerified: boolean;
+  media: {
+    _id: string;
+    type: 'image' | 'video';
+    url: string;
+    isCover: boolean;
+  }[];
+  price_for_event_planner?: number;
+}
+
+export interface Employee {
+  _id: string;
+  name: string; // Changed from displayName
+  email: string;
+  phone: string;
+  countryCode?: string; // Not in response example, making optional
+  role: string;
+  isActive: boolean;
+  createdAt?: string;
+  plannerProfileId?: string; // Added from response
+  employeeId?: string; // Added from response
 }
 
 export interface BookingRequest {
