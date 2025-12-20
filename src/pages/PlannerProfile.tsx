@@ -126,12 +126,12 @@ export default function PlannerProfile() {
                 <div className="md:col-span-2">
                     <Tabs defaultValue="bookings" className="w-full">
                         <TabsList className="mb-4">
-                            <TabsTrigger value="bookings">Booked Artists ({profile.bookedArtists.length})</TabsTrigger>
+                            <TabsTrigger value="bookings">Booked Artists ({profile.bookedArtists?.length || 0})</TabsTrigger>
                             <TabsTrigger value="documents">Documents</TabsTrigger>
                         </TabsList>
 
                         <TabsContent value="bookings" className="space-y-4">
-                            {profile.bookedArtists.length > 0 ? (
+                            {profile.bookedArtists && profile.bookedArtists.length > 0 ? (
                                 profile.bookedArtists.map((booking) => (
                                     <Card key={booking._id} className="overflow-hidden hover:shadow-md transition-shadow">
                                         <div className="flex flex-col sm:flex-row">
