@@ -18,6 +18,7 @@ import TicketSales from "./pages/TicketSales";
 import ScannerPage from "./pages/ScannerPage";
 import Artists from "./pages/Artists";
 import ArtistProfile from "./pages/ArtistProfile";
+import PlannerProfile from "./pages/PlannerProfile";
 import Employees from "./pages/Employees";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
@@ -41,7 +42,7 @@ const App = () => {
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/verify-otp" element={<VerifyOtp />} />
-            
+
             {/* Protected routes */}
             <Route
               path="/"
@@ -144,6 +145,16 @@ const App = () => {
               }
             />
             <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <PlannerProfile />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/settings"
               element={
                 <ProtectedRoute>
@@ -153,7 +164,7 @@ const App = () => {
                 </ProtectedRoute>
               }
             />
-            
+
             {/* Catch all - redirect to login if not authenticated, otherwise 404 */}
             <Route path="*" element={<NotFound />} />
           </Routes>

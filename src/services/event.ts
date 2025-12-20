@@ -70,6 +70,18 @@ export const eventService = {
         return data.events || data; // Handle likely response format
     },
 
+    async listEventsForBooking(): Promise<Event[]> {
+        const headers = getAuthHeaders();
+        const response = await fetch(`${config.API_BASE_URI}/api/planner/events-list`, {
+            method: 'GET',
+            headers,
+        });
+
+        if (!response.ok) throw new Error('Failed to fetch events list');
+        const data = await response.json();
+        return data.events || [];
+    },
+
     async getEvent(id: string): Promise<Event | null> {
         const headers = getAuthHeaders();
         const response = await fetch(`${config.API_BASE_URI}/api/planner/events/${id}`, {

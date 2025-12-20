@@ -1,5 +1,4 @@
 
-
 import { config } from '../config';
 import { storage, db } from './storage';
 import { addToSyncQueue } from './syncQueue';
@@ -12,6 +11,9 @@ import type {
   Artist,
   Employee,
   BookingRequest,
+  ArtistBookingRequest,
+  ArtistBookingResponse,
+  PlannerProfileResponse,
   QRPayload,
   ScanLog,
 } from '../types';
@@ -239,6 +241,39 @@ export const apiClient = {
   },
 
   // Planner
+  async getPlannerProfile(): Promise<PlannerProfileResponse> {
+    const headers = getAuthHeaders();
+    const response = await fetch(`${config.API_BASE_URI}/api/planner/profile`, {
+      method: 'GET',
+      headers,
+    });
+
+    if (!response.ok) {
+      // Fallback for dev if API fails
+      if (config.SIMULATE_OFFLINE) {
+        return handleMockRequest('getPlannerProfile', async () => {
+          return {
+            _id: "mock_planner_id",
+            userId: "mock_user_id",
+            organization: "Mock Organization",
+            logoUrl: "",
+            verified: true,
+            verificationNote: "",
+            walletBalance: 50000,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            __v: 0,
+            bookedArtists: []
+          };
+        });
+      }
+      const err = await response.json();
+      throw new Error(err.message || 'Failed to fetch planner profile');
+    }
+
+    return response.json();
+  },
+
   async getPlanner(): Promise<Planner | null> {
     return handleMockRequest('getPlanner', async () => {
       return storage.get<Planner>(db.planner, 'current');
@@ -272,7 +307,6 @@ export const apiClient = {
       }));
     } catch (error) {
       console.error("Error fetching employees:", error);
-      // Fallback for dev/demo if needed, but error preferred if API is real
       throw error;
     }
   },
@@ -383,6 +417,22 @@ export const apiClient = {
     await addToSyncQueue('createBooking', booking);
 
     return booking;
+  },
+
+  async createArtistBooking(payload: ArtistBookingRequest): Promise<ArtistBookingResponse> {
+    const headers = getAuthHeaders();
+    const response = await fetch(`${config.API_BASE_URI}/api/planner/bookings/artist`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const err = await response.json();
+      throw new Error(err.message || 'Failed to create artist booking');
+    }
+
+    return response.json();
   },
 
   async listBookings(eventId?: string): Promise<BookingRequest[]> {

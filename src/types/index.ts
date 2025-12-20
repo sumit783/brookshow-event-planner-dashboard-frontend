@@ -92,6 +92,60 @@ export interface ArtistProfile {
   price_for_event_planner?: number;
 }
 
+export interface ArtistService {
+  id: string;
+  category: string;
+  unit: string;
+  price_for_user: number;
+  price_for_planner: number;
+  advance: number;
+}
+
+export interface ArtistServicesResponse {
+  success: boolean;
+  artistId: string;
+  services: ArtistService[];
+  count: number;
+}
+
+export interface ArtistAvailabilityRequest {
+  artistId: string;
+  serviceId: string;
+  startAt: string; // ISO 8601 format
+  endAt: string; // ISO 8601 format
+}
+
+export interface ArtistAvailabilityResponse {
+  success: boolean;
+  available: boolean;
+  artist: {
+    id: string;
+    category: string[];
+    location: {
+      city: string;
+      state: string;
+      country: string;
+    };
+  };
+  service: {
+    id: string;
+    category: string;
+    unit: string;
+    pricePerUnit: number;
+  };
+  pricing: {
+    pricePerUnit: number;
+    units: number;
+    totalPrice: number;
+    currency: string;
+  };
+  requestedDates: {
+    startAt: string;
+    endAt: string;
+  };
+  conflictingBooking: any | null;
+}
+
 export interface Employee {
   _id: string;
   name: string; // Changed from displayName
@@ -151,4 +205,111 @@ export interface DashboardMetrics {
   totalRevenue: number;
   pendingScans: number;
   syncQueueLength: number;
+}
+
+export interface ArtistBookingRequest {
+  artistId: string;
+  serviceId: string;
+  eventId: string;
+  startAt: string;
+  endAt: string;
+}
+
+export interface ArtistBookingResponse {
+  success: boolean;
+  message: string;
+  booking: {
+    _id: string;
+    clientId: string;
+    artistId: {
+      _id: string;
+      userId: string;
+      bio: string;
+      category: string[];
+      location: {
+        city: string;
+        state: string;
+        country: string;
+      };
+    };
+    serviceId: {
+      _id: string;
+      category: string;
+      unit: string;
+      price_for_planner: number;
+    };
+    eventId: {
+      _id: string;
+      title: string;
+      startAt: string;
+      endAt: string;
+    };
+    source: string;
+    startAt: string;
+    endAt: string;
+    totalPrice: number;
+    status: string;
+    paymentStatus: string;
+    createdAt: string;
+  };
+  remainingBalance: number;
+}
+
+export interface PlannerProfileResponse {
+  _id: string;
+  userId: string;
+  organization: string;
+  logoUrl: string;
+  verified: boolean;
+  verificationNote: string;
+  walletBalance: number;
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
+  bookedArtists: {
+    _id: string;
+    clientId: string;
+    artistId: {
+      _id: string;
+      userId: {
+        _id: string;
+        email: string;
+        phone: string;
+        displayName: string;
+      };
+      profileImage: string;
+      bio: string;
+      category: string[];
+      location: {
+        city: string;
+        state: string;
+        country: string;
+      };
+    };
+    serviceId: {
+      _id: string;
+      category: string;
+      unit: string;
+      price_for_planner: number;
+    };
+    eventId: {
+      _id: string;
+      title: string;
+      venue: string;
+      address: string;
+      city: string;
+      state: string;
+      startAt: string;
+      endAt: string;
+    };
+    source: string;
+    startAt: string;
+    endAt: string;
+    totalPrice: number;
+    status: string;
+    paymentStatus: string;
+    createdAt: string;
+    updatedAt: string;
+    __v: number;
+  }[];
 }

@@ -7,15 +7,16 @@ import { ArtistProfileContent } from '@/components/artist-profile/ArtistProfileC
 import { ArtistBookingSidebar } from '@/components/artist-profile/ArtistBookingSidebar';
 import { artistService } from '@/services/artist';
 import { eventService } from '@/services/event';
-import { ArtistProfile as IArtistProfile, Event } from '@/types';
+import { ArtistProfile as IArtistProfile, Event, ArtistService } from '@/types';
 import { toast } from '@/hooks/use-toast';
 
 export default function ArtistProfile() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  
+
   const [artist, setArtist] = useState<IArtistProfile | null>(null);
   const [events, setEvents] = useState<Event[]>([]);
+  const [services, setServices] = useState<ArtistService[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -26,13 +27,15 @@ export default function ArtistProfile() {
 
   async function loadData(artistId: string) {
     try {
-      const [artistData, eventsData] = await Promise.all([
+      const [artistData, eventsData, servicesData] = await Promise.all([
         artistService.getArtistById(artistId),
-        eventService.listEvents()
+        eventService.listEvents(),
+        artistService.getArtistServices(artistId)
       ]);
       setArtist(artistData);
       // Filter only published and future events if necessary, for now just published
       setEvents(eventsData.filter(e => e.published));
+      setServices(servicesData);
     } catch (error) {
       console.error(error);
       toast({
@@ -73,10 +76,10 @@ export default function ArtistProfile() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2">
-           <ArtistProfileContent artist={artist} />
+          <ArtistProfileContent artist={artist} />
         </div>
         <div className="lg:col-span-1">
-           <ArtistBookingSidebar artist={artist} events={events} />
+          <ArtistBookingSidebar artist={artist} events={events} services={services} />
         </div>
       </div>
     </div>

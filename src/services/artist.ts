@@ -1,6 +1,6 @@
 import { config } from '../config';
 import { getAuthToken } from './auth';
-import type { Artist, ArtistProfile } from '../types';
+import type { Artist, ArtistProfile, ArtistService, ArtistAvailabilityResponse } from '../types';
 
 export const artistService = {
     fetchArtists: async (): Promise<Artist[]> => {
@@ -64,6 +64,78 @@ export const artistService = {
             return data;
         } catch (error) {
             console.error("Error fetching artist profile:", error);
+            throw error;
+        }
+    },
+
+    getArtistServices: async (artistId: string): Promise<ArtistService[]> => {
+        try {
+            const token = getAuthToken();
+            const headers: HeadersInit = {
+                'Content-Type': 'application/json',
+                'x-api-key': config.X_API_KEY,
+                ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+            };
+
+            const response = await fetch(`${config.API_BASE_URI}/api/user/artist/${artistId}/services`, {
+                method: 'GET',
+                headers,
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to fetch artist services: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            if (!data.success) throw new Error(data.message || 'Failed to fetch artist services');
+
+            return data.services || [];
+        } catch (error) {
+            console.error("Error fetching artist services:", error);
+            throw error;
+        }
+    },
+
+    checkArtistAvailability: async (
+        artistId: string,
+        serviceId: string,
+        startAt: string,
+        endAt: string
+    ): Promise<ArtistAvailabilityResponse> => {
+        try {
+            const token = getAuthToken();
+            const headers: HeadersInit = {
+                'Content-Type': 'application/json',
+                'x-api-key': config.X_API_KEY,
+                ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+            };
+
+            // Build query string
+            const params = new URLSearchParams({
+                artistId,
+                serviceId,
+                startAt,
+                endAt
+            });
+
+            const response = await fetch(
+                `${config.API_BASE_URI}/api/planner/artists/availability/check?${params.toString()}`,
+                {
+                    method: 'GET',
+                    headers,
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error(`Failed to check artist availability: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            if (!data.success) throw new Error(data.message || 'Failed to check availability');
+
+            return data;
+        } catch (error) {
+            console.error("Error checking artist availability:", error);
             throw error;
         }
     }
