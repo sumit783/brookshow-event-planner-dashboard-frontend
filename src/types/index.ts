@@ -313,3 +313,44 @@ export interface PlannerProfileResponse {
     __v: number;
   }[];
 }
+
+export interface WalletData {
+  success: boolean;
+  walletBalance: number;
+  totalIncome: number;
+  totalExpense: number;
+}
+
+export interface Transaction {
+  _id: string;
+  ownerId: string;
+  ownerType: string;
+  type: 'credit' | 'debit';
+  amount: number;
+  source: string;
+  referenceId: string | null;
+  description: string;
+  status: 'completed' | 'pending' | 'failed';
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
+}
+
+export interface BankDetail {
+  _id: string;
+  userId: string;
+  accountHolderName?: string;
+  accountNumber?: string;
+  bankName?: string;
+  ifscCode?: string;
+  upiId?: string;
+  isPrimary: boolean;
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
+}
+
+export interface BankDetailsResponse {
+  success: boolean;
+  bankDetails: BankDetail[];
+}

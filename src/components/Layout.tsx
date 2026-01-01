@@ -10,6 +10,7 @@ import {
   WifiOff,
   AlertCircle,
   LogOut,
+  Wallet,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useSyncStatus } from '@/hooks/useSyncStatus';
@@ -26,6 +27,7 @@ const navItems = [
   { to: '/events', label: 'Events', icon: Calendar },
   { to: '/artists', label: 'Book Artist', icon: PlusCircle },
   { to: '/employees', label: 'Employees', icon: Users },
+  { to: '/wallet', label: 'Wallet', icon: Wallet },
   { to: '/profile', label: 'Profile', icon: User },
 ];
 
@@ -89,7 +91,7 @@ export function Layout({ children }: LayoutProps) {
                 </div>
               </div>
             )}
-            
+
             {/* Status */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -112,7 +114,7 @@ export function Layout({ children }: LayoutProps) {
                 </Badge>
               )}
             </div>
-            
+
             {/* Logout Button */}
             <Button
               variant="ghost"

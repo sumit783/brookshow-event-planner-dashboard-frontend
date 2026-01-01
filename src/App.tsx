@@ -21,6 +21,7 @@ import ArtistProfile from "./pages/ArtistProfile";
 import PlannerProfile from "./pages/PlannerProfile";
 import Employees from "./pages/Employees";
 import Reports from "./pages/Reports";
+import Wallet from "./pages/Wallet";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
@@ -140,6 +141,16 @@ const App = () => {
                 <ProtectedRoute>
                   <Layout>
                     <Reports />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/wallet"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <Wallet />
                   </Layout>
                 </ProtectedRoute>
               }
