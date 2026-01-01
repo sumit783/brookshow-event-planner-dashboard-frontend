@@ -354,3 +354,27 @@ export interface BankDetailsResponse {
   success: boolean;
   bankDetails: BankDetail[];
 }
+
+export interface WithdrawalRequest {
+  _id: string;
+  userId: string;
+  userType: string;
+  amount: number;
+  status: 'pending' | 'processed' | 'rejected';
+  bankDetails: {
+    upiId?: string;
+    accountNumber?: string;
+    bankName?: string;
+    accountHolderName?: string;
+  };
+  transactionId: Transaction;
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
+}
+
+export interface WithdrawalRequestsResponse {
+  success: boolean;
+  count: number;
+  requests: WithdrawalRequest[];
+}

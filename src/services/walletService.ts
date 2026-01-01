@@ -63,6 +63,51 @@ export const walletService = {
         return response.json();
     },
 
+    async setPrimaryBankDetail(id: string): Promise<{ success: boolean }> {
+        const headers = getAuthHeaders();
+        const response = await fetch(`${config.API_BASE_URI}/api/planner/bank-details/${id}/primary`, {
+            method: 'PATCH',
+            headers,
+        });
+
+        if (!response.ok) {
+            const err = await response.json();
+            throw new Error(err.message || 'Failed to set primary bank detail');
+        }
+
+        return response.json();
+    },
+
+    async withdraw(amount: number): Promise<{ success: boolean; message: string }> {
+        const headers = getAuthHeaders();
+        const response = await fetch(`${config.API_BASE_URI}/api/planner/withdraw`, {
+            method: 'POST',
+            headers,
+            body: JSON.stringify({ amount }),
+        });
+
+        const data = await response.json();
+        if (!response.ok) {
+            // Throw the whole response data so we can check the message in the component
+            throw data;
+        }
+
+        return data;
+    },
+
+    async getWithdrawals(): Promise<import('../types').WithdrawalRequestsResponse> {
+        const headers = getAuthHeaders();
+        const response = await fetch(`${config.API_BASE_URI}/api/planner/withdrawals`, {
+            headers,
+        });
+
+        if (!response.ok) {
+            const err = await response.json();
+            throw new Error(err.message || 'Failed to fetch withdrawals');
+        } 
+        return response.json();
+    },
+
     async addBankDetails(data: any): Promise<{ success: boolean; bankDetail: import('../types').BankDetail }> {
         const headers = getAuthHeaders();
         const response = await fetch(`${config.API_BASE_URI}/api/planner/bank-details`, {
