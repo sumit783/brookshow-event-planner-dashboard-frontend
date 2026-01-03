@@ -59,18 +59,18 @@ export function EventCard({ event }: EventCardProps) {
       <CardHeader>
         <CardTitle className="line-clamp-1">{event.title}</CardTitle>
         <CardDescription className="space-y-1">
-          <div className="flex items-center gap-2 text-sm">
+          <span className="flex items-center gap-2 text-sm">
             <Calendar className="h-4 w-4" />
             {new Date(event.startAt).toLocaleDateString('en-IN', {
               month: 'short',
               day: 'numeric',
               year: 'numeric',
             })}
-          </div>
-          <div className="flex items-center gap-2 text-sm">
+          </span>
+          <span className="flex items-center gap-2 text-sm">
             <MapPin className="h-4 w-4" />
             {event.venue}, {event.city}
-          </div>
+          </span>
         </CardDescription>
       </CardHeader>
 

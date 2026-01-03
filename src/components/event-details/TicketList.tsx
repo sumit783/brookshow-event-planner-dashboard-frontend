@@ -19,10 +19,19 @@ export function TicketList({ event, onTicketChanged }: TicketListProps) {
         {event.ticketData.map((ticket) => (
           <Card key={ticket.id}>
             <CardHeader className="pb-2">
-              <CardTitle className="text-base font-medium">{ticket.title}</CardTitle>
-              <CardDescription>
-                ₹{ticket.price}
-              </CardDescription>
+              <div className="flex items-start justify-between">
+                <div className="space-y-1">
+                  <CardTitle className="text-base font-medium">{ticket.title}</CardTitle>
+                  <CardDescription>
+                    ₹{ticket.price}
+                  </CardDescription>
+                </div>
+                <AddTicketDialog 
+                  eventId={event._id} 
+                  ticket={ticket} 
+                  onTicketAdded={onTicketChanged} 
+                />
+              </div>
             </CardHeader>
             <CardContent>
               <div className="space-y-2">

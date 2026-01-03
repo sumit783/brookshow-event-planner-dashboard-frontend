@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Loader2, Plus } from 'lucide-react';
+import { Loader2, Plus, Edit } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -25,6 +25,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { toast } from '@/hooks/use-toast';
 import { eventService } from '@/services/event';
+import type { TicketType } from '@/types';
 
 const formSchema = z.object({
   title: z.string().min(2, 'Title must be at least 2 characters'),
@@ -39,11 +40,13 @@ type FormValues = z.infer<typeof formSchema>;
 interface AddTicketDialogProps {
   eventId: string;
   onTicketAdded: () => void;
+  ticket?: TicketType;
 }
 
-export function AddTicketDialog({ eventId, onTicketAdded }: AddTicketDialogProps) {
+export function AddTicketDialog({ eventId, onTicketAdded, ticket }: AddTicketDialogProps) {
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const isEditMode = !!ticket;
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -56,23 +59,73 @@ export function AddTicketDialog({ eventId, onTicketAdded }: AddTicketDialogProps
     },
   });
 
+  // Helper to format date for datetime-local input
+  const formatDateForInput = (dateString: string | undefined) => {
+    if (!dateString) return '';
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return '';
+      
+      // Get local date parts to avoid UTC shifting in the input
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      
+      return `${year}-${month}-${day}T${hours}:${minutes}`;
+    } catch {
+      return '';
+    }
+  };
+
+  // Update form values when ticket changes (for edit mode)
+  useEffect(() => {
+    if (ticket && open) {
+      form.reset({
+        title: ticket.title,
+        price: ticket.price,
+        quantity: ticket.quantity,
+        salesStart: formatDateForInput(ticket.salesStart),
+        salesEnd: formatDateForInput(ticket.salesEnd),
+      });
+    } else if (!ticket && open) {
+      form.reset({
+        title: '',
+        price: 0,
+        quantity: 100,
+        salesStart: '',
+        salesEnd: '',
+      });
+    }
+  }, [ticket, open, form]);
+
   const onSubmit = async (values: FormValues) => {
     setIsSubmitting(true);
     try {
-      const payload = {
+      // Create explicit payload to avoid TS "optional property" spreading issues
+      const payload: Omit<TicketType, 'id' | 'sold'> = {
         eventId,
-        ...values,
-        // Ensure dates are ISO strings
+        title: values.title,
+        price: values.price,
+        quantity: values.quantity,
         salesStart: new Date(values.salesStart).toISOString(),
         salesEnd: new Date(values.salesEnd).toISOString(),
       };
 
-      await eventService.createTicketType(payload);
-
-      toast({
-        title: 'Success',
-        description: 'Ticket type created successfully',
-      });
+      if (isEditMode && ticket) {
+        await eventService.updateTicketType(ticket.id, payload);
+        toast({
+          title: 'Success',
+          description: 'Ticket type updated successfully',
+        });
+      } else {
+        await eventService.createTicketType(payload);
+        toast({
+          title: 'Success',
+          description: 'Ticket type created successfully',
+        });
+      }
 
       setOpen(false);
       form.reset();
@@ -80,7 +133,7 @@ export function AddTicketDialog({ eventId, onTicketAdded }: AddTicketDialogProps
     } catch (error) {
       toast({
         title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to create ticket',
+        description: error instanceof Error ? error.message : `Failed to ${isEditMode ? 'update' : 'create'} ticket`,
         variant: 'destructive',
       });
     } finally {
@@ -91,16 +144,22 @@ export function AddTicketDialog({ eventId, onTicketAdded }: AddTicketDialogProps
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm" className="gap-2">
-          <Plus className="h-4 w-4" />
-          Add Ticket
-        </Button>
+        {isEditMode ? (
+          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary">
+            <Edit className="h-4 w-4" />
+          </Button>
+        ) : (
+          <Button size="sm" className="gap-2">
+            <Plus className="h-4 w-4" />
+            Add Ticket
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Add Ticket Type</DialogTitle>
+          <DialogTitle>{isEditMode ? 'Edit Ticket Type' : 'Add Ticket Type'}</DialogTitle>
           <DialogDescription>
-            Create a new ticket tier for your event.
+            {isEditMode ? 'Update the details for this ticket tier.' : 'Create a new ticket tier for your event.'}
           </DialogDescription>
         </DialogHeader>
 
@@ -181,7 +240,7 @@ export function AddTicketDialog({ eventId, onTicketAdded }: AddTicketDialogProps
             <DialogFooter>
               <Button type="submit" disabled={isSubmitting}>
                 {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Create Ticket
+                {isEditMode ? 'Update Ticket' : 'Create Ticket'}
               </Button>
             </DialogFooter>
           </form>

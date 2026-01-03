@@ -23,6 +23,7 @@ import Employees from "./pages/Employees";
 import Reports from "./pages/Reports";
 import Wallet from "./pages/Wallet";
 import Settings from "./pages/Settings";
+import CompleteProfile from "./pages/CompleteProfile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -43,6 +44,14 @@ const App = () => {
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/verify-otp" element={<VerifyOtp />} />
+            <Route
+              path="/complete-profile"
+              element={
+                <ProtectedRoute>
+                  <CompleteProfile />
+                </ProtectedRoute>
+              }
+            />
 
             {/* Protected routes */}
             <Route

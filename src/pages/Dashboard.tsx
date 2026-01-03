@@ -1,21 +1,36 @@
-import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Calendar, Ticket, DollarSign, ScanLine, ArrowRight, TrendingUp, PlusCircle, Users } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { 
+  DollarSign, 
+  PlusCircle, 
+  Zap,
+  Calendar,
+  Ticket,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import { eventService } from '@/services/event';
-import { storage, db } from '@/services/storage';
-import type { Event, TicketType, ScanLog } from '@/types';
+import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+// New Modular Components
+import { MetricCard } from '@/components/dashboard/MetricCard';
+import { RevenueForecast } from '@/components/dashboard/RevenueForecast';
+import { AudienceSegments } from '@/components/dashboard/AudienceSegments';
+import { ActiveProjects } from '@/components/dashboard/ActiveProjects';
+import { OperationalCenter } from '@/components/dashboard/OperationalCenter';
+
+// Icon mapping for live metrics
+const ICON_MAP: Record<string, any> = {
+  DollarSign,
+  Ticket,
+  Calendar,
+  Zap,
+};
 
 export default function Dashboard() {
-  const [metrics, setMetrics] = useState({
-    upcomingEvents: 0,
-    totalTicketsSold: 0,
-    totalRevenue: 0,
-    recentScans: 0,
-  });
-  const [recentEvents, setRecentEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
+  const [metrics, setMetrics] = useState<any[]>([]);
+  const [revenueData, setRevenueData] = useState<any[]>([]);
+  const [ticketDistribution, setTicketDistribution] = useState<any[]>([]);
+  const [recentEvents, setRecentEvents] = useState<any[]>([]);
 
   useEffect(() => {
     loadDashboard();
@@ -23,185 +38,75 @@ export default function Dashboard() {
 
   async function loadDashboard() {
     try {
-      const events = await eventService.listEvents();
-      const now = new Date();
-      const upcoming = events.filter((e) => new Date(e.startAt) > now && e.published);
-
-      const ticketTypes = await storage.getAll<TicketType>(db.ticketTypes);
-      const totalSold = ticketTypes.reduce((sum, tt) => sum + tt.sold, 0);
-      const totalRevenue = ticketTypes.reduce((sum, tt) => sum + tt.sold * tt.price, 0);
-
-      const scanLogs = await storage.getAll<ScanLog>(db.scanLogs);
-      const last24h = scanLogs.filter(
-        (log) => new Date(log.timestamp) > new Date(Date.now() - 24 * 60 * 60 * 1000)
-      );
-
-      setMetrics({
-        upcomingEvents: upcoming.length,
-        totalTicketsSold: totalSold,
-        totalRevenue,
-        recentScans: last24h.length,
-      });
-
-      setRecentEvents(events.slice(0, 3));
+      const [metricsData, revenueData, distributionData, recentEventsData] = await Promise.all([
+        eventService.getDashboardMetrics(),
+        eventService.getDashboardRevenue(),
+        eventService.getDashboardTicketDistribution(),
+        eventService.getDashboardRecentEvents()
+      ]);
+      setMetrics(metricsData);
+      setRevenueData(revenueData);
+      setTicketDistribution(distributionData);
+      setRecentEvents(recentEventsData);
     } catch (error) {
-      console.error('Failed to load dashboard:', error);
+      console.error('Failed to load dashboard data:', error);
     } finally {
-      setLoading(false);
+      // Simulate slightly longer loading for smooth transition
+      setTimeout(() => setLoading(false), 500);
     }
   }
 
-  const metricCards = [
-    {
-      title: 'Upcoming Events',
-      value: metrics.upcomingEvents,
-      icon: Calendar,
-      color: 'from-primary to-primary-glow',
-      link: '/events',
-    },
-    {
-      title: 'Tickets Sold',
-      value: metrics.totalTicketsSold,
-      icon: Ticket,
-      color: 'from-accent to-accent-hover',
-      link: '/tickets',
-    },
-    {
-      title: 'Total Revenue',
-      value: `$${metrics.totalRevenue.toLocaleString()}`,
-      icon: DollarSign,
-      color: 'from-success to-success/80',
-      link: '/reports',
-    },
-    {
-      title: 'Scans (24h)',
-      value: metrics.recentScans,
-      icon: ScanLine,
-      color: 'from-warning to-warning/80',
-      link: '/scanner',
-    },
-  ];
-
   if (loading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-8 animate-pulse p-2">
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
           {[1, 2, 3, 4].map((i) => (
-            <Card key={i} className="animate-pulse">
-              <CardHeader className="h-32 bg-muted/50" />
-            </Card>
+            <Card key={i} className="h-32 bg-muted/20 border-none shadow-sm" />
           ))}
+        </div>
+        <div className="grid gap-6 lg:grid-cols-3">
+          <Card className="lg:col-span-2 h-[400px] bg-muted/20 border-none" />
+          <Card className="h-[400px] bg-muted/20 border-none" />
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div>
-        <h1 className="text-4xl font-bold tracking-tight">Dashboard</h1>
-        <p className="mt-2 text-muted-foreground">
-          Welcome back! Here's what's happening with your events.
-        </p>
+    <div className="space-y-8 pb-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      {/* Hero / Header Section */}
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div>
+          <h1 className="bg-gradient-to-r from-primary to-violet-400 bg-clip-text text-4xl font-extrabold tracking-tight text-transparent">
+            Executive Overview
+          </h1>
+          <p className="text-muted-foreground mt-1">
+            Welcome back! Here's a summary of your organization's real-time performance.
+          </p>
+        </div>
       </div>
 
-      {/* Metrics Grid */}
+      {/* Metrics Section */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        {metricCards.map((metric) => {
-          const Icon = metric.icon;
-          return (
-            <Link key={metric.title} to={metric.link}>
-              <Card className="group relative overflow-hidden transition-all hover:shadow-elevated">
-                <div
-                  className={`absolute inset-0 bg-gradient-to-br ${metric.color} opacity-5 transition-opacity group-hover:opacity-10`}
-                />
-                <CardHeader className="pb-2">
-                  <CardDescription className="flex items-center gap-2">
-                    <Icon className="h-4 w-4" />
-                    {metric.title}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-end justify-between">
-                    <div className="text-3xl font-bold">{metric.value}</div>
-                    <TrendingUp className="h-5 w-5 text-muted-foreground" />
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
-          );
-        })}
+        {metrics.map((metric, i) => (
+          <MetricCard 
+            key={i} 
+            {...metric} 
+            icon={ICON_MAP[metric.icon] || Calendar} 
+          />
+        ))}
       </div>
 
-      {/* Recent Events */}
-      <div className="grid gap-6 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Events</CardTitle>
-            <CardDescription>Your latest event activities</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {recentEvents.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No events yet. Create your first event!</p>
-            ) : (
-              recentEvents.map((event) => (
-                <div key={event.id} className="flex items-start justify-between rounded-lg border p-4">
-                  <div className="space-y-1">
-                    <p className="font-medium">{event.title}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {new Date(event.startAt).toLocaleDateString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                        year: 'numeric',
-                      })}
-                    </p>
-                  </div>
-                  <Link to={`/events/${event.id}`}>
-                    <Button variant="ghost" size="sm">
-                      View
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </Button>
-                  </Link>
-                </div>
-              ))
-            )}
-          </CardContent>
-        </Card>
+      {/* Analytics Row */}
+      <div className="grid gap-6 lg:grid-cols-3">
+        <RevenueForecast data={ revenueData} />
+        <AudienceSegments data={ticketDistribution} />
+      </div>
 
-        {/* Quick Actions */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
-            <CardDescription>Get started with common tasks</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <Link to="/events/create">
-              <Button variant="outline" className="w-full justify-start" size="lg">
-                <PlusCircle className="mr-2 h-5 w-5" />
-                Create New Event
-              </Button>
-            </Link>
-            <Link to="/tickets">
-              <Button variant="outline" className="w-full justify-start" size="lg">
-                <Ticket className="mr-2 h-5 w-5" />
-                Sell Tickets
-              </Button>
-            </Link>
-            <Link to="/scanner">
-              <Button variant="outline" className="w-full justify-start" size="lg">
-                <ScanLine className="mr-2 h-5 w-5" />
-                Scan Tickets
-              </Button>
-            </Link>
-            <Link to="/artists">
-              <Button variant="outline" className="w-full justify-start" size="lg">
-                <Users className="mr-2 h-5 w-5" />
-                Book Artists
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
+      {/* Bottom Section */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        <ActiveProjects events={recentEvents} />
+        <OperationalCenter />
       </div>
     </div>
   );

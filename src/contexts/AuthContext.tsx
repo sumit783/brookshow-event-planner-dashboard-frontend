@@ -118,11 +118,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       toast({
         title: 'Success',
-        description: 'You have been logged in successfully.',
+        description: isLogin ? 'You have been logged in successfully.' : 'Email verified successfully!',
       });
 
-      // Navigate to dashboard
-      navigate('/');
+      // Navigate to dashboard or complete profile
+      if (isLogin) {
+        navigate('/');
+      } else {
+        navigate('/complete-profile');
+      }
     } catch (error: any) {
       toast({
         title: 'Verification Failed',

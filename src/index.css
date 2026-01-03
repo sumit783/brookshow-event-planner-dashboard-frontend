@@ -226,6 +226,14 @@ All colors MUST be HSL.
     box-shadow: var(--shadow-glow);
   }
 
+  .shadow-premium {
+    box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.5), 0 0 20px rgba(179, 12, 93, 0.1);
+  }
+
+  .shadow-elevated {
+    box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.6), 0 0 30px rgba(179, 12, 93, 0.2);
+  }
+
   /* Typography utilities */
   .font-heading {
     font-family: var(--font-heading);

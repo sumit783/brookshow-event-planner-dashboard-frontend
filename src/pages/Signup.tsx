@@ -70,7 +70,7 @@ export default function Signup() {
         countryCode,
         role: 'planner',
       });
-      navigate('/verify-otp', { state: { email } });
+      navigate('/verify-otp', { state: { email, isRegistration: true } });
     } catch (error) {
       // Error is handled by auth context toast
     } finally {

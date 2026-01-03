@@ -1,8 +1,7 @@
-
+import { request } from './apiBase';
 import { config } from '../config';
 import { storage, db } from './storage';
 import { addToSyncQueue } from './syncQueue';
-import { getAuthToken } from './auth';
 import type {
   Planner,
   Event,
@@ -48,21 +47,6 @@ async function handleMockRequest<T>(
   return mockFn();
 }
 
-// Helper to get auth headers
-function getAuthHeaders(): HeadersInit {
-  const token = getAuthToken();
-  const headers: HeadersInit = {
-    'Content-Type': 'application/json',
-    'x-api-key': config.X_API_KEY,
-  };
-
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
-
-  return headers;
-}
-
 export const apiClient = {
   // Authentication
   async signup(data: {
@@ -72,37 +56,26 @@ export const apiClient = {
     countryCode: string;
     role: string;
   }): Promise<void> {
-    return handleMockRequest('signup', async () => {
-      // In a real implementation, this would call: POST /auth/signup
-      // Store signup data temporarily (in production, this would be handled by backend)
-      const signupData = {
-        ...data,
-        createdAt: Date.now(),
-      };
-      localStorage.setItem(`signup_${data.email}`, JSON.stringify(signupData));
-
-      // Send OTP after signup
-      await this.sendOtp(data.email);
-
-      // In production, the backend would create the account and send OTP via email
-      console.log(`[DEMO] Signup data for ${data.email}:`, signupData);
+    const result = await request<any>(`/api/auth/register`, {
+      method: 'POST',
+      body: JSON.stringify(data),
     });
+
+    if (!result.success) {
+      throw new Error(result.message || 'Failed to sign up');
+    }
+
+    return;
   },
 
   async sendOtp(email: string): Promise<void> {
     try {
-      const response = await fetch(`${config.API_BASE_URI}/api/auth/request-otp`, {
+      const data = await request<any>(`/api/auth/request-otp`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': config.X_API_KEY,
-        },
         body: JSON.stringify({ email }),
       });
 
-      const data = await response.json();
-
-      if (!response.ok || !data.success) {
+      if (!data.success) {
         throw new Error(data.message || 'Failed to send OTP');
       }
 
@@ -136,22 +109,21 @@ export const apiClient = {
     };
   }> {
     try {
-      const response = await fetch(`${config.API_BASE_URI}/api/auth/verify-email-otp`, {
+      const endpoint = isLogin
+        ? `/api/auth/verify-email-otp`
+        : `/api/auth/verify-registration-otp`;
+
+      const body: any = { email, otp };
+      if (isLogin) {
+        body.isLogin = isLogin;
+      }
+
+      const data = await request<any>(endpoint, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': config.X_API_KEY,
-        },
-        body: JSON.stringify({
-          email,
-          otp,
-          isLogin,
-        }),
+        body: JSON.stringify(body),
       });
 
-      const data = await response.json();
-
-      if (!response.ok || !data.success) {
+      if (!data.success) {
         throw new Error(data.message || 'Failed to verify OTP');
       }
 
@@ -241,14 +213,31 @@ export const apiClient = {
   },
 
   // Planner
-  async getPlannerProfile(): Promise<PlannerProfileResponse> {
-    const headers = getAuthHeaders();
-    const response = await fetch(`${config.API_BASE_URI}/api/planner/profile`, {
-      method: 'GET',
-      headers,
-    });
+  async createPlannerProfile(data: {
+    organization: string;
+    logo: File | string;
+  }): Promise<any> {
+    let body: any;
+    if (data.logo instanceof File) {
+      body = new FormData();
+      body.append('organization', data.organization);
+      body.append('logo', data.logo);
+    } else {
+      body = JSON.stringify(data);
+    }
 
-    if (!response.ok) {
+    return request<any>(`/api/planner/profile`, {
+      method: 'POST',
+      body,
+    });
+  },
+
+  async getPlannerProfile(): Promise<PlannerProfileResponse> {
+    try {
+      return await request<PlannerProfileResponse>(`/api/planner/profile`, {
+        method: 'GET',
+      });
+    } catch (error: any) {
       // Fallback for dev if API fails
       if (config.SIMULATE_OFFLINE) {
         return handleMockRequest('getPlannerProfile', async () => {
@@ -267,11 +256,8 @@ export const apiClient = {
           };
         });
       }
-      const err = await response.json();
-      throw new Error(err.message || 'Failed to fetch planner profile');
+      throw error;
     }
-
-    return response.json();
   },
 
   async getPlanner(): Promise<Planner | null> {
@@ -283,23 +269,10 @@ export const apiClient = {
   // Employees
   async listEmployees(): Promise<Employee[]> {
     try {
-      const token = getAuthToken();
-      const headers: HeadersInit = {
-        'Content-Type': 'application/json',
-        'x-api-key': config.X_API_KEY,
-        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-      };
-
-      const response = await fetch(`${config.API_BASE_URI}/api/planner/employees`, {
+      const data = await request<any>(`/api/planner/employees`, {
         method: 'GET',
-        headers
       });
 
-      if (!response.ok) {
-        throw new Error(`Failed to fetch employees: ${response.statusText}`);
-      }
-
-      const data = await response.json();
       const employees = data.employees || data;
       return (Array.isArray(employees) ? employees : []).map((emp: any) => ({
         ...emp,
@@ -312,62 +285,35 @@ export const apiClient = {
   },
 
   async createEmployee(payload: any): Promise<Employee> {
-    const headers = getAuthHeaders();
-    const response = await fetch(`${config.API_BASE_URI}/api/planner/employees`, {
+    return request<Employee>(`/api/planner/employees`, {
       method: 'POST',
-      headers,
       body: JSON.stringify(payload)
     });
-
-    if (!response.ok) {
-      const err = await response.json();
-      throw new Error(err.message || 'Failed to create employee');
-    }
-
-    return response.json();
   },
 
   async updateEmployee(id: string, payload: Partial<Employee>): Promise<Employee> {
-    const headers = getAuthHeaders();
     const body = { ...payload };
     if (body.name) {
       (body as any).displayName = body.name;
       delete body.name;
     }
 
-    const response = await fetch(`${config.API_BASE_URI}/api/planner/employees/${id}`, {
+    return request<Employee>(`/api/planner/employees/${id}`, {
       method: 'PUT',
-      headers,
       body: JSON.stringify(body)
     });
-
-    if (!response.ok) {
-      throw new Error('Failed to update employee');
-    }
-
-    return response.json();
   },
 
   async deleteEmployee(id: string): Promise<void> {
-    const headers = getAuthHeaders();
-    const response = await fetch(`${config.API_BASE_URI}/api/planner/employees/${id}`, {
+    return request<void>(`/api/planner/employees/${id}`, {
       method: 'DELETE',
-      headers
     });
-
-    if (!response.ok) {
-      throw new Error('Failed to deactivate employee');
-    }
   },
 
   async getEmployee(id: string): Promise<Employee> {
-    const headers = getAuthHeaders();
-    const response = await fetch(`${config.API_BASE_URI}/api/planner/employees/${id}`, {
-      headers
+    return request<Employee>(`/api/planner/employees/${id}`, {
+      method: 'GET',
     });
-
-    if (!response.ok) throw new Error('Failed to fetch employee');
-    return response.json();
   },
 
   // Artists
@@ -420,19 +366,10 @@ export const apiClient = {
   },
 
   async createArtistBooking(payload: ArtistBookingRequest): Promise<ArtistBookingResponse> {
-    const headers = getAuthHeaders();
-    const response = await fetch(`${config.API_BASE_URI}/api/planner/bookings/artist`, {
+    return request<ArtistBookingResponse>(`/api/planner/bookings/artist`, {
       method: 'POST',
-      headers,
       body: JSON.stringify(payload),
     });
-
-    if (!response.ok) {
-      const err = await response.json();
-      throw new Error(err.message || 'Failed to create artist booking');
-    }
-
-    return response.json();
   },
 
   async listBookings(eventId?: string): Promise<BookingRequest[]> {

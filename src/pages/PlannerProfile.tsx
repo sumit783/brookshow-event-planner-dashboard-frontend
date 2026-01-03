@@ -76,7 +76,7 @@ export default function PlannerProfile() {
                     <CardContent className="space-y-6">
                         <div className="flex flex-col items-center text-center p-4 bg-muted/20 rounded-lg">
                             <Avatar className="h-24 w-24 mb-4 border-2 border-primary/20">
-                                <AvatarImage src={profile.logoUrl} alt={profile.organization} />
+                                <AvatarImage src={config.API_BASE_URI + profile.logoUrl} alt={profile.organization} />
                                 <AvatarFallback className="text-2xl bg-primary/10 text-primary">
                                     {profile.organization.substring(0, 2).toUpperCase()}
                                 </AvatarFallback>

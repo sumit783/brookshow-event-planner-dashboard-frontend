@@ -34,6 +34,8 @@ export interface TicketType {
   price: number;
   quantity: number;
   sold: number;
+  salesStart: string;
+  salesEnd: string;
 }
 
 export interface Ticket {

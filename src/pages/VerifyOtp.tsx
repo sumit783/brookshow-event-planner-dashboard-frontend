@@ -20,6 +20,7 @@ export default function VerifyOtp() {
   const location = useLocation();
   
   const email = location.state?.email || '';
+  const isRegistration = location.state?.isRegistration || false;
 
   // Redirect if no email
   useEffect(() => {
@@ -48,7 +49,7 @@ export default function VerifyOtp() {
 
     setIsLoading(true);
     try {
-      await verifyOtp(email, otp, true); // isLogin: true
+      await verifyOtp(email, otp, !isRegistration); // isLogin: !isRegistration
       // Navigation happens in auth context after successful verification
     } catch (error) {
       // Error is handled by auth context toast
