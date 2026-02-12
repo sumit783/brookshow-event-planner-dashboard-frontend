@@ -140,6 +140,7 @@ export interface ArtistAvailabilityResponse {
     units: number;
     totalPrice: number;
     currency: string;
+    advance: number;
   };
   requestedDates: {
     startAt: string;

@@ -34,7 +34,7 @@ export function EventHeader({ event, status }: EventHeaderProps) {
         </div>
       </div>
       <div className="flex items-center gap-2">
-         <Link to={`/events/${event._id}/edit`}>
+         <Link to={`/events/edit/${event._id}`}>
           <Button variant="outline">
             <Edit className="mr-2 h-4 w-4" />
             Edit Event

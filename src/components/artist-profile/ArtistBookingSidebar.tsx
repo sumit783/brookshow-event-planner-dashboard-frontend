@@ -304,7 +304,7 @@ export function ArtistBookingSidebar({ artist, events, services = [] }: ArtistBo
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Price per {availabilityData.service.unit}</span>
-                  <span className="font-medium">₹{availabilityData.pricing.pricePerUnit.toLocaleString()}</span>
+                  <span className="font-medium">₹{(availabilityData.pricing.pricePerUnit ?? 0).toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Number of {availabilityData.service.unit}s</span>
@@ -312,7 +312,11 @@ export function ArtistBookingSidebar({ artist, events, services = [] }: ArtistBo
                 </div>
                 <div className="flex justify-between pt-2 border-t">
                   <span className="font-semibold">Total Price</span>
-                  <span className="font-bold text-lg">₹{availabilityData.pricing.totalPrice.toLocaleString()}</span>
+                  <span className="font-bold">₹{(availabilityData.pricing.totalPrice ?? 0).toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between pt-1 text-primary">
+                  <span className="font-semibold">Advance to Pay</span>
+                  <span className="font-bold text-lg">₹{(availabilityData.pricing.advance ?? 0).toLocaleString()}</span>
                 </div>
               </div>
             )}
@@ -351,7 +355,11 @@ export function ArtistBookingSidebar({ artist, events, services = [] }: ArtistBo
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Total Price</span>
-                    <span className="font-bold">₹{availabilityData.pricing.totalPrice.toLocaleString()}</span>
+                    <span className="font-medium">₹{(availabilityData.pricing.totalPrice ?? 0).toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between text-primary font-bold pt-1 border-t border-primary/20">
+                    <span>Advance to Pay</span>
+                    <span>₹{(availabilityData.pricing.advance ?? 0).toLocaleString()}</span>
                   </div>
                 </div>
 

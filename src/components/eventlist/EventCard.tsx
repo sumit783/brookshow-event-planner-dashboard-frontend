@@ -101,7 +101,7 @@ export function EventCard({ event }: EventCardProps) {
               View
             </Button>
           </Link>
-          <Link to={`/events/${event._id}/edit`} className="flex-1">
+          <Link to={`/events/edit/${event._id}`} className="flex-1">
             <Button variant="outline" size="sm" className="w-full">
               <Edit className="mr-2 h-4 w-4" />
               Edit

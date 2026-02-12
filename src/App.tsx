@@ -24,6 +24,7 @@ import Reports from "./pages/Reports";
 import Wallet from "./pages/Wallet";
 import Settings from "./pages/Settings";
 import CompleteProfile from "./pages/CompleteProfile";
+import UpdateEvent from "./pages/UpdateEvent";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -80,6 +81,16 @@ const App = () => {
                 <ProtectedRoute>
                   <Layout>
                     <CreateEvent />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/events/edit/:id"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <UpdateEvent />
                   </Layout>
                 </ProtectedRoute>
               }
