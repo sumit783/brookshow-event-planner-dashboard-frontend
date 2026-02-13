@@ -11,6 +11,7 @@ import {
   AlertCircle,
   LogOut,
   Wallet,
+  RefreshCw,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useSyncStatus } from '@/hooks/useSyncStatus';
@@ -114,6 +115,17 @@ export function Layout({ children }: LayoutProps) {
                 </Badge>
               )}
             </div>
+
+            {/* Refresh Button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full justify-start text-sidebar-foreground/80 hover:text-sidebar-foreground hover:bg-white/5"
+              onClick={() => window.location.reload()}
+            >
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Refresh
+            </Button>
 
             {/* Logout Button */}
             <Button
