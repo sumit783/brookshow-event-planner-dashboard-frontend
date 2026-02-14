@@ -120,33 +120,41 @@ export interface ArtistAvailabilityRequest {
 export interface ArtistAvailabilityResponse {
   success: boolean;
   available: boolean;
-  artist: {
+  price: number;
+  unit: string;
+  basePrice: number;
+  advance: number;
+  duration?: {
+    start: string;
+    end: string;
+    milliseconds: number;
+  };
+  message?: string;
+  // Retaining some fields that might be useful for the UI or other parts of the app
+  artist?: {
     id: string;
-    category: string[];
-    location: {
+    name: string;
+    category?: string[];
+    location?: {
       city: string;
       state: string;
       country: string;
     };
   };
-  service: {
+  service?: {
     id: string;
     category: string;
     unit: string;
-    pricePerUnit: number;
+    pricePerUnit?: number;
   };
-  pricing: {
-    pricePerUnit: number;
-    units: number;
-    totalPrice: number;
-    currency: string;
-    advance: number;
-  };
-  requestedDates: {
+  requestedTime?: {
+    startDate: string;
+    startTime: string;
     startAt: string;
+    endDate: string;
+    endTime: string;
     endAt: string;
   };
-  conflictingBooking: any | null;
 }
 
 export interface Employee {
@@ -380,4 +388,95 @@ export interface WithdrawalRequestsResponse {
   success: boolean;
   count: number;
   requests: WithdrawalRequest[];
+}
+
+export interface BookedArtist {
+  _id: string;
+  artistId: {
+    _id: string;
+    userId: {
+      _id: string;
+      displayName: string;
+    };
+    profileImage: string;
+    category: string[];
+    location: {
+      city: string;
+      state: string;
+      country: string;
+    };
+  };
+  serviceId: {
+    _id: string;
+    category: string;
+    unit: string;
+  };
+  eventId: {
+    _id: string;
+    title: string;
+  };
+  startAt: string;
+  endAt: string;
+  totalPrice: number;
+  status: string;
+  paymentStatus: string;
+  createdAt: string;
+}
+
+export interface BookedArtistsResponse {
+  success: boolean;
+  count: number;
+  bookings: BookedArtist[];
+}
+
+export interface BookingDetails {
+  _id: string;
+  clientId: string;
+  artistId: {
+    _id: string;
+    userId: {
+      _id: string;
+      displayName: string;
+      email?: string;
+      phone?: string;
+      countryCode?: string;
+    };
+    profileImage: string;
+    bio?: string;
+    category: string[];
+    location: {
+      city: string;
+      state: string;
+      country: string;
+    };
+  };
+  serviceId: {
+    _id: string;
+    category: string;
+    unit: string;
+    price_for_planner?: number;
+  };
+  eventId: {
+    _id: string;
+    title: string;
+    venue?: string;
+    address?: string;
+    city?: string;
+    state?: string;
+    startAt?: string;
+    endAt?: string;
+  };
+  source: string;
+  startAt: string;
+  endAt: string;
+  totalPrice: number;
+  paidAmount: number;
+  advanceAmount: number;
+  status: string; // confirmed, cancelled, pending
+  paymentStatus: string;
+  razorpayOrderId?: string;
+  razorpayPaymentId?: string;
+  razorpaySignature?: string;
+  createdAt: string;
+  updatedAt: string;
 }

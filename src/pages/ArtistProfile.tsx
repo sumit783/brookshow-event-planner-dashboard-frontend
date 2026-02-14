@@ -1,53 +1,50 @@
-import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Loader2, ArrowLeft } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { ArtistProfileHeader } from '@/components/artist-profile/ArtistProfileHeader';
 import { ArtistProfileContent } from '@/components/artist-profile/ArtistProfileContent';
 import { ArtistBookingSidebar } from '@/components/artist-profile/ArtistBookingSidebar';
 import { artistService } from '@/services/artist';
 import { eventService } from '@/services/event';
-import { ArtistProfile as IArtistProfile, Event, ArtistService } from '@/types';
 import { toast } from '@/hooks/use-toast';
 
 export default function ArtistProfile() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
-  const [artist, setArtist] = useState<IArtistProfile | null>(null);
-  const [events, setEvents] = useState<Event[]>([]);
-  const [services, setServices] = useState<ArtistService[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Fetch Artist Profile
+  const {
+    data: artist,
+    isLoading: loadingArtist,
+    isError: artistError
+  } = useQuery({
+    queryKey: ['artist', id],
+    queryFn: () => artistService.getArtistById(id!),
+    enabled: !!id,
+  });
 
-  useEffect(() => {
-    if (id) {
-      loadData(id);
-    }
-  }, [id]);
+  // Fetch Events
+  const {
+    data: events = [],
+    isLoading: loadingEvents
+  } = useQuery({
+    queryKey: ['events'],
+    queryFn: () => eventService.listEvents(),
+    select: (data) => data.filter(e => e.published),
+  });
 
-  async function loadData(artistId: string) {
-    try {
-      const [artistData, eventsData, servicesData] = await Promise.all([
-        artistService.getArtistById(artistId),
-        eventService.listEvents(),
-        artistService.getArtistServices(artistId)
-      ]);
-      setArtist(artistData);
-      // Filter only published and future events if necessary, for now just published
-      setEvents(eventsData.filter(e => e.published));
-      setServices(servicesData);
-    } catch (error) {
-      console.error(error);
-      toast({
-        title: "Error",
-        description: "Failed to load artist profile.",
-        variant: "destructive"
-      });
-      // Optionally redirect back
-    } finally {
-      setLoading(false);
-    }
-  }
+  // Fetch Services
+  const {
+    data: services = [],
+    isLoading: loadingServices
+  } = useQuery({
+    queryKey: ['artist-services', id],
+    queryFn: () => artistService.getArtistServices(id!),
+    enabled: !!id,
+  });
+
+  const loading = loadingArtist || loadingEvents || loadingServices;
 
   if (loading) {
     return (
@@ -57,7 +54,7 @@ export default function ArtistProfile() {
     );
   }
 
-  if (!artist) {
+  if (artistError || !artist) {
     return (
       <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
         <h2 className="text-2xl font-bold">Artist not found</h2>

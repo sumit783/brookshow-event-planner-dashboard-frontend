@@ -77,7 +77,7 @@ export const artistService = {
                 ...(token ? { 'Authorization': `Bearer ${token}` } : {})
             };
 
-            const response = await fetch(`${config.API_BASE_URI}/api/user/artist/${artistId}/services`, {
+            const response = await fetch(`${config.API_BASE_URI}/api/planner/artist/${artistId}/services`, {
                 method: 'GET',
                 headers,
             });
@@ -99,8 +99,10 @@ export const artistService = {
     checkArtistAvailability: async (
         artistId: string,
         serviceId: string,
-        startAt: string,
-        endAt: string
+        startDate: string,
+        endDate: string,
+        startTime?: string,
+        endTime?: string
     ): Promise<ArtistAvailabilityResponse> => {
         try {
             const token = getAuthToken();
@@ -110,16 +112,16 @@ export const artistService = {
                 ...(token ? { 'Authorization': `Bearer ${token}` } : {})
             };
 
-            // Build query string
             const params = new URLSearchParams({
-                artistId,
                 serviceId,
-                startAt,
-                endAt
+                startDate,
+                endDate,
+                ...(startTime ? { startTime } : {}),
+                ...(endTime ? { endTime } : {})
             });
 
             const response = await fetch(
-                `${config.API_BASE_URI}/api/planner/artists/availability/check?${params.toString()}`,
+                `${config.API_BASE_URI}/api/planner/artist/${artistId}/price?${params.toString()}`,
                 {
                     method: 'GET',
                     headers,
@@ -127,15 +129,15 @@ export const artistService = {
             );
 
             if (!response.ok) {
-                throw new Error(`Failed to check artist availability: ${response.statusText}`);
+                throw new Error(`Failed to check artist availability and price: ${response.statusText}`);
             }
 
             const data = await response.json();
-            if (!data.success) throw new Error(data.message || 'Failed to check availability');
+            if (!data.success) throw new Error(data.message || 'Failed to check availability and price');
 
             return data;
         } catch (error) {
-            console.error("Error checking artist availability:", error);
+            console.error("Error checking artist availability and price:", error);
             throw error;
         }
     }

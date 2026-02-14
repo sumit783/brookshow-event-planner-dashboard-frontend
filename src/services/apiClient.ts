@@ -372,6 +372,43 @@ export const apiClient = {
     });
   },
 
+  async createArtistBookingPayment(payload: any): Promise<any> {
+    return request<any>(`/api/planner/bookings/artist`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  },
+
+  async verifyArtistBookingPayment(payload: {
+    razorpay_order_id: string;
+    razorpay_payment_id: string;
+    razorpay_signature: string;
+  }): Promise<any> {
+    return request<any>(`/api/planner/bookings/artist/verify`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  },
+
+  async getBookedArtists(): Promise<any> {
+    return request<any>(`/api/planner/bookings/artists`, {
+      method: 'GET',
+    });
+  },
+
+  async getBookingDetails(id: string): Promise<any> {
+    return request<any>(`/api/planner/bookings/${id}`, {
+      method: 'GET',
+    });
+  },
+
+  async cancelBooking(id: string, status: string): Promise<any> {
+    return request<any>(`/api/planner/bookings/${id}/cancel`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status }),
+    });
+  },
+
   async listBookings(eventId?: string): Promise<BookingRequest[]> {
     return handleMockRequest('listBookings', async () => {
       const all = await storage.getAll<BookingRequest>(db.bookings);
