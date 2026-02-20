@@ -56,145 +56,27 @@ const App = () => {
 
             {/* Protected routes */}
             <Route
-              path="/"
               element={
                 <ProtectedRoute>
-                  <Layout>
-                    <Dashboard />
-                  </Layout>
+                  <Layout />
                 </ProtectedRoute>
               }
-            />
-            <Route
-              path="/events"
-              element={
-                <ProtectedRoute>
-                  <Layout>
-                    <EventsList />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/events/create"
-              element={
-                <ProtectedRoute>
-                  <Layout>
-                    <CreateEvent />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/events/edit/:id"
-              element={
-                <ProtectedRoute>
-                  <Layout>
-                    <UpdateEvent />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/events/:id"
-              element={
-                <ProtectedRoute>
-                  <Layout>
-                    <EventDetails />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/tickets"
-              element={
-                <ProtectedRoute>
-                  <Layout>
-                    <TicketSales />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/scanner"
-              element={
-                <ProtectedRoute>
-                  <Layout>
-                    <ScannerPage />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/artists"
-              element={
-                <ProtectedRoute>
-                  <Layout>
-                    <Artists />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/artists/:id"
-              element={
-                <ProtectedRoute>
-                  <Layout>
-                    <ArtistProfile />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/employees"
-              element={
-                <ProtectedRoute>
-                  <Layout>
-                    <Employees />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/reports"
-              element={
-                <ProtectedRoute>
-                  <Layout>
-                    <Reports />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/wallet"
-              element={
-                <ProtectedRoute>
-                  <Layout>
-                    <Wallet />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/profile"
-              element={
-                <ProtectedRoute>
-                  <Layout>
-                    <PlannerProfile />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/settings"
-              element={
-                <ProtectedRoute>
-                  <Layout>
-                    <Settings />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
+            >
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/events" element={<EventsList />} />
+              <Route path="/events/create" element={<CreateEvent />} />
+              <Route path="/events/edit/:id" element={<UpdateEvent />} />
+              <Route path="/events/:id" element={<EventDetails />} />
+              <Route path="/tickets" element={<TicketSales />} />
+              <Route path="/scanner" element={<ScannerPage />} />
+              <Route path="/artists" element={<Artists />} />
+              <Route path="/artists/:id" element={<ArtistProfile />} />
+              <Route path="/employees" element={<Employees />} />
+              <Route path="/reports" element={<Reports />} />
+              <Route path="/wallet" element={<Wallet />} />
+              <Route path="/profile" element={<PlannerProfile />} />
+              <Route path="/settings" element={<Settings />} />
+            </Route>
 
             {/* Catch all - redirect to login if not authenticated, otherwise 404 */}
             <Route path="*" element={<NotFound />} />

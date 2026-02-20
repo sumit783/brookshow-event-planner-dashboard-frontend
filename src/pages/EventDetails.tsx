@@ -100,19 +100,21 @@ export default function EventDetails() {
   );
 
   return (
-    <div className="space-y-6 pb-10">
+    <div className="container max-w-7xl px-4 py-6 md:px-6 space-y-6 md:space-y-8 pb-10">
       <EventHeader event={event} status={status} />
       <EventBanner event={event} />
 
-      <div className="grid gap-6 md:grid-cols-3">
+      <div className="grid gap-6 lg:grid-cols-3">
         {/* Main Content */}
-        <div className="md:col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-6">
           <EventInfo event={event} />
           <TicketList event={event} onTicketChanged={() => loadEvent(event._id)} />
         </div>
 
         {/* Sidebar Info */}
-        <EventSidebar event={event} stats={stats} />
+        <div className="space-y-6">
+          <EventSidebar event={event} stats={stats} />
+        </div>
       </div>
     </div>
   );

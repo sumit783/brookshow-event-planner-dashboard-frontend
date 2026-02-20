@@ -1,7 +1,8 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { UseFormReturn } from 'react-hook-form';
-import { GoogleMap, Marker, useJsApiLoader, Autocomplete } from '@react-google-maps/api';
-import { Loader2, Crosshair, Search, MapPin } from 'lucide-react';
+import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from 'react-leaflet';
+import L from 'leaflet';
+import { Loader2, Crosshair, Search } from 'lucide-react';
 import {
   FormControl,
   FormField,
@@ -13,127 +14,115 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
+import 'leaflet/dist/leaflet.css';
+
+// Fix for default marker icons in Leaflet with Vite
+import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
+import markerIcon from 'leaflet/dist/images/marker-icon.png';
+import markerShadow from 'leaflet/dist/images/marker-shadow.png';
+
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconUrl: markerIcon,
+  iconRetinaUrl: markerIcon2x,
+  shadowUrl: markerShadow,
+});
 
 interface EventLocationProps {
   form: UseFormReturn<any>;
 }
 
-const mapContainerStyle = {
-  width: '100%',
-  height: '400px',
-  borderRadius: '0.5rem',
-};
+const defaultCenter: [number, number] = [19.076, 72.8777];
 
-const defaultCenter = {
-  lat: 19.076,
-  lng: 72.8777,
-};
+// Helper to update map view when coordinates change
+function ChangeView({ center }: { center: [number, number] }) {
+  const map = useMap();
+  useEffect(() => {
+    map.setView(center, map.getZoom());
+  }, [center, map]);
+  return null;
+}
 
-const libraries: ("places" | "geometry" | "drawing" | "visualization")[] = ["places"];
+// Map events handler
+function MapClickHandler({ onClick }: { onClick: (lat: number, lng: number) => void }) {
+  useMapEvents({
+    click: (e) => {
+      onClick(e.latlng.lat, e.latlng.lng);
+    },
+  });
+  return null;
+}
 
 export default function EventLocation({ form }: EventLocationProps) {
-  const [map, setMap] = useState<google.maps.Map | null>(null);
-  const [autocomplete, setAutocomplete] = useState<google.maps.places.Autocomplete | null>(null);
   const [loadingLocation, setLoadingLocation] = useState(false);
-  
-  const { isLoaded } = useJsApiLoader({
-    id: 'google-map-script',
-    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '',
-    libraries,
-  });
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
 
   const lat = form.watch('lat');
   const lng = form.watch('lng');
-  const [center, setCenter] = useState(defaultCenter);
+  const [center, setCenter] = useState<[number, number]>(defaultCenter);
 
-  // Update map center when form values change (e.g. from current location)
+  // Update map center when form values change
   useEffect(() => {
     if (lat && lng) {
-      setCenter({ lat, lng });
+      setCenter([lat, lng]);
     }
   }, [lat, lng]);
 
-  const onLoad = useCallback(function callback(map: google.maps.Map) {
-    setMap(map);
-  }, []);
+  const handleSearch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!searchQuery.trim()) return;
 
-  const onUnmount = useCallback(function callback() {
-    setMap(null);
-  }, []);
+    setIsSearching(true);
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}`
+      );
+      const data = await response.json();
 
-  const onAutocompleteLoad = useCallback((autocompleteInstance: google.maps.places.Autocomplete) => {
-    setAutocomplete(autocompleteInstance);
-  }, []);
+      if (data && data.length > 0) {
+        const place = data[0];
+        const newLat = parseFloat(place.lat);
+        const newLng = parseFloat(place.lon);
 
-  const onPlaceChanged = () => {
-    if (autocomplete) {
-      const place = autocomplete.getPlace();
-      
-      if (!place.geometry || !place.geometry.location) {
+        form.setValue('lat', newLat, { shouldDirty: true });
+        form.setValue('lng', newLng, { shouldDirty: true });
+        setCenter([newLat, newLng]);
+
+        // Auto-fill venue if it's descriptive
+        const displayName = place.display_name;
+        const namePart = displayName.split(',')[0];
+
+        form.setValue('venue', namePart, { shouldDirty: true });
+        form.setValue('address', displayName, { shouldDirty: true });
+
+        toast({
+          title: "Location Found",
+          description: `Set location to ${namePart}`,
+        });
+      } else {
         toast({
           title: "Place not found",
-          description: "No details available for input: '" + place.name + "'",
+          description: "No results matched your search.",
           variant: "destructive"
         });
-        return;
       }
-
-      // Update coordinates
-      const newLat = place.geometry.location.lat();
-      const newLng = place.geometry.location.lng();
-      
-      form.setValue('lat', newLat, { shouldDirty: true });
-      form.setValue('lng', newLng, { shouldDirty: true });
-      setCenter({ lat: newLat, lng: newLng });
-
-      // Parse Address Components
-      let address = "";
-      let city = "";
-      let state = "";
-      
-      if (place.address_components) {
-        // Construct basic address
-        const streetNumber = place.address_components.find(c => c.types.includes("street_number"))?.long_name || "";
-        const route = place.address_components.find(c => c.types.includes("route"))?.long_name || "";
-        address = `${streetNumber} ${route}`.trim();
-        if (!address) address = place.formatted_address || "";
-
-        // City (Locality > Administrative Area 2)
-        city = place.address_components.find(c => c.types.includes("locality"))?.long_name ||
-               place.address_components.find(c => c.types.includes("administrative_area_level_2"))?.long_name || "";
-
-        // State (Administrative Area 1)
-        state = place.address_components.find(c => c.types.includes("administrative_area_level_1"))?.long_name || "";
-      }
-
-      // Auto-fill form fields
-      if (place.name) form.setValue('venue', place.name, { shouldDirty: true });
-      if (address) form.setValue('address', address, { shouldDirty: true });
-      if (city) form.setValue('city', city, { shouldDirty: true });
-      if (state) form.setValue('state', state, { shouldDirty: true });
-
+    } catch (error) {
       toast({
-        title: "Location Selected",
-        description: `Updated venue details for ${place.name}`,
+        title: "Search Error",
+        description: "Failed to connect to search service.",
+        variant: "destructive"
       });
+    } finally {
+      setIsSearching(false);
     }
   };
 
-  const onMapClick = useCallback((e: google.maps.MapMouseEvent) => {
-    if (e.latLng) {
-      const newLat = e.latLng.lat();
-      const newLng = e.latLng.lng();
-      form.setValue('lat', newLat, { shouldDirty: true });
-      form.setValue('lng', newLng, { shouldDirty: true });
-    }
-  }, [form]);
-
-  const onMarkerDragEnd = useCallback((e: google.maps.MapMouseEvent) => {
-    if (e.latLng) {
-      form.setValue('lat', e.latLng.lat(), { shouldDirty: true });
-      form.setValue('lng', e.latLng.lng(), { shouldDirty: true });
-    }
-  }, [form]);
+  const handleMapClick = (newLat: number, newLng: number) => {
+    form.setValue('lat', newLat, { shouldDirty: true });
+    form.setValue('lng', newLng, { shouldDirty: true });
+  };
 
   const getCurrentLocation = () => {
     if (!navigator.geolocation) {
@@ -152,8 +141,8 @@ export default function EventLocation({ form }: EventLocationProps) {
         const newLng = position.coords.longitude;
         form.setValue('lat', newLat, { shouldDirty: true });
         form.setValue('lng', newLng, { shouldDirty: true });
-        setCenter({ lat: newLat, lng: newLng });
-        
+        setCenter([newLat, newLng]);
+
         toast({
           title: 'Location Updated',
           description: 'Coordinates set to your current location',
@@ -178,79 +167,79 @@ export default function EventLocation({ form }: EventLocationProps) {
         <CardDescription>Search for the venue or select location on map</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        
-        {/* Map Section */}
-        <div className="space-y-4">
-           {isLoaded ? (
-            <div className="relative border rounded-lg overflow-hidden h-[400px]">
-               <GoogleMap
-                mapContainerStyle={mapContainerStyle}
-                center={center}
-                zoom={15}
-                onLoad={onLoad}
-                onUnmount={onUnmount}
-                onClick={onMapClick}
-                options={{
-                  streetViewControl: false,
-                  mapTypeControl: false,
-                  fullscreenControl: false,
-                }}
-               >
-                 {lat && lng && (
-                   <Marker
-                     position={{ lat, lng }}
-                     draggable={true}
-                     onDragEnd={onMarkerDragEnd}
-                   />
-                 )}
 
-                 {/* Autocomplete Search Box inside Map */}
-                 <div className="absolute top-4 left-4 right-16 z-10 max-w-sm">
-                   <Autocomplete
-                     onLoad={onAutocompleteLoad}
-                     onPlaceChanged={onPlaceChanged}
-                   >
-                     <div className="relative">
-                       <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                       <input
-                         type="text"
-                         placeholder="Search venue..."
-                         className="flex h-9 w-full rounded-md border border-input bg-background pl-9 pr-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                         style={{ 
-                           boxShadow: "0 2px 6px rgba(0,0,0,0.3)",
-                           width: "100%",
-                         }}
-                       />
-                     </div>
-                   </Autocomplete>
-                 </div>
-               </GoogleMap>
-               
-               <Button 
-                type="button" 
-                variant="secondary" 
+        <div className="space-y-4">
+          <div className="relative border rounded-lg overflow-hidden h-[300px] md:h-[400px] z-0">
+            <MapContainer
+              center={center}
+              zoom={13}
+              style={{ height: '100%', width: '100%' }}
+              zoomControl={false}
+            >
+              <ChangeView center={center} />
+              <TileLayer
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              />
+              <MapClickHandler onClick={handleMapClick} />
+              {lat && lng && (
+                <Marker
+                  position={[lat, lng]}
+                  draggable={true}
+                  eventHandlers={{
+                    dragend: (e) => {
+                      const marker = e.target;
+                      const position = marker.getLatLng();
+                      form.setValue('lat', position.lat, { shouldDirty: true });
+                      form.setValue('lng', position.lng, { shouldDirty: true });
+                    },
+                  }}
+                />
+              )}
+            </MapContainer>
+
+            {/* Free Search Box overlay */}
+            <form
+              onSubmit={handleSearch}
+              className="absolute top-3 left-3 right-12 z-[1000] sm:max-w-sm flex items-center gap-2"
+            >
+              <div className="relative flex-1">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  type="text"
+                  placeholder="Search venue (e.g. Gateway of India)"
+                  className="pl-9 bg-background/95 backdrop-blur-sm shadow-md h-9 border-border/50"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+              <Button
+                type="submit"
                 size="sm"
-                className="absolute top-4 right-4 shadow-md bg-white hover:bg-gray-100 text-black z-10 h-9 w-9 p-0"
-                onClick={getCurrentLocation} 
-                disabled={loadingLocation}
-                title="Use Current Location"
-               >
-                {loadingLocation ? <Loader2 className="h-4 w-4 animate-spin" /> : <Crosshair className="h-4 w-4" />}
+                className="h-9 px-3 bg-primary/90 hover:bg-primary backdrop-blur-sm"
+                disabled={isSearching}
+              >
+                {isSearching ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Go'}
               </Button>
-            </div>
-           ) : (
-             <div className="h-[400px] w-full flex items-center justify-center bg-muted rounded-lg border">
-               <div className="flex flex-col items-center gap-2 text-muted-foreground">
-                 <Loader2 className="h-8 w-8 animate-spin" />
-                 <p>Loading Map...</p>
-               </div>
-             </div>
-           )}
+            </form>
+
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              className="absolute top-3 right-3 shadow-md bg-white hover:bg-gray-100 text-black z-[1000] h-9 w-9 p-0"
+              onClick={getCurrentLocation}
+              disabled={loadingLocation}
+              title="Use Current Location"
+            >
+              {loadingLocation ? <Loader2 className="h-4 w-4 animate-spin" /> : <Crosshair className="h-4 w-4" />}
+            </Button>
+          </div>
         </div>
 
         {/* Address Fields */}
         <div className="grid gap-6 md:grid-cols-2">
-           <FormField
+          <FormField
             control={form.control}
             name="venue"
             render={({ field }) => (
@@ -264,22 +253,22 @@ export default function EventLocation({ form }: EventLocationProps) {
             )}
           />
           <FormField
-             control={form.control}
-             name="city"
-             render={({ field }) => (
-               <FormItem>
-                 <FormLabel>City</FormLabel>
-                 <FormControl>
-                   <Input placeholder="e.g. Mumbai" {...field} />
-                 </FormControl>
-                 <FormMessage />
-               </FormItem>
-             )}
-           />
+            control={form.control}
+            name="city"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>City</FormLabel>
+                <FormControl>
+                  <Input placeholder="e.g. Mumbai" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         </div>
 
-         <div className="grid gap-6 md:grid-cols-2">
-           <FormField
+        <div className="grid gap-6 md:grid-cols-2">
+          <FormField
             control={form.control}
             name="state"
             render={({ field }) => (
@@ -293,54 +282,53 @@ export default function EventLocation({ form }: EventLocationProps) {
             )}
           />
           <FormField
-             control={form.control}
-             name="address"
-             render={({ field }) => (
-               <FormItem>
-                 <FormLabel>Full Address</FormLabel>
-                 <FormControl>
-                   <Input placeholder="Street address" {...field} />
-                 </FormControl>
-                 <FormMessage />
-               </FormItem>
-             )}
-           />
+            control={form.control}
+            name="address"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Full Address</FormLabel>
+                <FormControl>
+                  <Input placeholder="Street address" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         </div>
 
-        {/* Lat/Lng hidden or visible tiny for debugging, currently visible */}
         <div className="flex items-end gap-4">
-            <div className="grid flex-1 gap-6 md:grid-cols-2">
-               <FormField
-                control={form.control}
-                name="lat"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Latitude</FormLabel>
-                    <FormControl>
-                      <Input type="number" step="any" placeholder="19.0760" {...field} onChange={e => field.onChange(parseFloat(e.target.value))} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                 control={form.control}
-                 name="lng"
-                 render={({ field }) => (
-                   <FormItem>
-                     <FormLabel>Longitude</FormLabel>
-                     <FormControl>
-                       <Input type="number" step="any" placeholder="72.8777" {...field} onChange={e => field.onChange(parseFloat(e.target.value))} />
-                     </FormControl>
-                     <FormMessage />
-                   </FormItem>
-                 )}
-               />
-            </div>
+          <div className="grid flex-1 gap-6 md:grid-cols-2">
+            <FormField
+              control={form.control}
+              name="lat"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Latitude</FormLabel>
+                  <FormControl>
+                    <Input type="number" step="any" placeholder="19.0760" {...field} onChange={e => field.onChange(parseFloat(e.target.value))} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="lng"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Longitude</FormLabel>
+                  <FormControl>
+                    <Input type="number" step="any" placeholder="72.8777" {...field} onChange={e => field.onChange(parseFloat(e.target.value))} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </div>
-          <p className="text-xs text-muted-foreground">
-            Search for a venue above or click on the map to manually pin the location.
-          </p>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Search for a venue above or click on the map to manually pin the location.
+        </p>
       </CardContent>
     </Card>
   );

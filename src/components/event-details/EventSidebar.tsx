@@ -40,7 +40,7 @@ export function EventSidebar({ event, stats }: EventSidebarProps) {
               <p className="text-sm text-muted-foreground">{event.city}, {event.state}</p>
             </div>
           </div>
-          
+
           <div className="overflow-hidden rounded-lg border aspect-video">
             <iframe
               width="100%"
@@ -60,14 +60,14 @@ export function EventSidebar({ event, stats }: EventSidebarProps) {
           <CardTitle>Sales Overview</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <p className="text-sm text-muted-foreground">Total Revenue</p>
-              <p className="text-2xl font-bold">₹{stats.revenue.toLocaleString()}</p>
+          <div className="grid grid-cols-2 lg:grid-cols-1 gap-4">
+            <div className="space-y-1 p-3 rounded-lg bg-muted/30 border border-border/50">
+              <p className="text-xs md:text-sm text-muted-foreground font-medium">Total Revenue</p>
+              <p className="text-xl md:text-2xl font-bold">₹{stats.revenue.toLocaleString()}</p>
             </div>
-            <div className="space-y-1">
-              <p className="text-sm text-muted-foreground">Tickets Sold</p>
-              <p className="text-2xl font-bold">{stats.sold}</p>
+            <div className="space-y-1 p-3 rounded-lg bg-muted/30 border border-border/50">
+              <p className="text-xs md:text-sm text-muted-foreground font-medium">Tickets Sold</p>
+              <p className="text-xl md:text-2xl font-bold">{stats.sold}</p>
             </div>
           </div>
         </CardContent>

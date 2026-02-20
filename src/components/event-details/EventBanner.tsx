@@ -8,12 +8,12 @@ interface EventBannerProps {
 
 export function EventBanner({ event }: EventBannerProps) {
   return (
-    <div className="relative aspect-[21/9] w-4/5 mx-auto overflow-hidden rounded-xl bg-muted/30">
+    <div className="relative aspect-[21/9] w-full md:w-4/5 mx-auto overflow-hidden rounded-xl bg-muted/30 border">
       {event.bannerUrl ? (
-        <img 
-          src={`${config.API_BASE_URI}${event.bannerUrl}`} 
-          alt={event.title} 
-          className="h-full w-full object-cover" 
+        <img
+          src={`${config.API_BASE_URI}${event.bannerUrl}`}
+          alt={event.title}
+          className="h-full w-full object-cover"
         />
       ) : (
         <div className="flex h-full items-center justify-center bg-gradient-to-br from-primary/5 to-accent/5">

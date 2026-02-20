@@ -18,29 +18,30 @@ interface EventHeaderProps {
 
 export function EventHeader({ event, status }: EventHeaderProps) {
   return (
-    <div className="flex items-center justify-between">
-      <div className="flex items-center gap-4">
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex items-center gap-3 md:gap-4">
         <Link to="/events">
-          <Button variant="ghost" size="icon">
+          <Button variant="ghost" size="icon" className="h-9 w-9">
             <ArrowLeft className="h-5 w-5" />
           </Button>
         </Link>
-        <div>
-          <div className="flex items-center gap-3">
-            <h1 className="text-3xl font-bold">{event.title}</h1>
-            <Badge variant={status.variant}>{status.label}</Badge>
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2 md:gap-3">
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight truncate">{event.title}</h1>
+            <Badge variant={status.variant} className="shrink-0">{status.label}</Badge>
           </div>
-          <p className="text-muted-foreground">Created on {new Date(event.createdAt).toLocaleDateString()}</p>
+          <p className="text-sm text-muted-foreground">Created on {new Date(event.createdAt).toLocaleDateString()}</p>
         </div>
       </div>
-      <div className="flex items-center gap-2">
-         <Link to={`/events/edit/${event._id}`}>
-          <Button variant="outline">
+      <div className="flex items-center gap-2 sm:ml-auto">
+        <Link to={`/events/edit/${event._id}`} className="flex-1 sm:flex-none">
+          <Button variant="outline" className="w-full sm:w-auto">
             <Edit className="mr-2 h-4 w-4" />
-            Edit Event
+            <span className="hidden xs:inline">Edit Event</span>
+            <span className="xs:hidden">Edit</span>
           </Button>
-         </Link>
-         <DropdownMenu>
+        </Link>
+        <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon">
               <MoreVertical className="h-5 w-5" />

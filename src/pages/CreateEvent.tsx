@@ -87,7 +87,7 @@ export default function CreateEvent() {
 
       const startDate = new Date(values.startAt);
       const endDate = new Date(values.endAt);
-      
+
       formData.set('startAt', startDate.toISOString());
       formData.set('endAt', endDate.toISOString());
 
@@ -115,25 +115,25 @@ export default function CreateEvent() {
   };
 
   return (
-    <div className="container max-w-4xl py-6 space-y-8">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => navigate('/events')}>
+    <div className="container max-w-4xl px-4 py-6 md:px-6 space-y-6 md:space-y-8">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+        <Button variant="ghost" size="icon" onClick={() => navigate('/events')} className="w-fit">
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div>
-          <h1 className="text-3xl font-bold">Create Event</h1>
-          <p className="text-muted-foreground">Fill in the details to create a new event</p>
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Create Event</h1>
+          <p className="text-sm md:text-base text-muted-foreground">Fill in the details to create a new event</p>
         </div>
       </div>
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-          
-          <EventBasicDetails 
-            form={form} 
-            bannerPreview={bannerPreview} 
-            setBanner={setBanner} 
-            setBannerPreview={setBannerPreview} 
+
+          <EventBasicDetails
+            form={form}
+            bannerPreview={bannerPreview}
+            setBanner={setBanner}
+            setBannerPreview={setBannerPreview}
           />
 
           {/* Date & Time - Kept inline as it's small, or could be extracted too */}
@@ -177,14 +177,14 @@ export default function CreateEvent() {
           <EventSettings form={form} />
 
           <Button type="submit" size="lg" className="w-full" disabled={isSubmitting}>
-             {isSubmitting ? (
-               <>
-                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                 Creating Event...
-               </>
-             ) : (
-               'Create Event'
-             )}
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Creating Event...
+              </>
+            ) : (
+              'Create Event'
+            )}
           </Button>
 
         </form>

@@ -102,14 +102,14 @@ export default function UpdateEvent() {
       Object.entries(values).forEach(([key, value]) => {
         formData.append(key, String(value));
       });
-      
+
       if (banner) {
         formData.append('banner', banner);
       }
 
       const startDate = new Date(values.startAt);
       const endDate = new Date(values.endAt);
-      
+
       formData.set('startAt', startDate.toISOString());
       formData.set('endAt', endDate.toISOString());
 
@@ -150,25 +150,25 @@ export default function UpdateEvent() {
   }
 
   return (
-    <div className="container max-w-4xl py-6 space-y-8">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+    <div className="container max-w-4xl px-4 py-6 md:px-6 space-y-6 md:space-y-8">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+        <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="w-fit">
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div>
-          <h1 className="text-3xl font-bold">Update Event</h1>
-          <p className="text-muted-foreground">Modify the details of your event</p>
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Update Event</h1>
+          <p className="text-sm md:text-base text-muted-foreground">Modify the details of your event</p>
         </div>
       </div>
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-          
-          <EventBasicDetails 
-            form={form} 
-            bannerPreview={bannerPreview} 
-            setBanner={setBanner} 
-            setBannerPreview={setBannerPreview} 
+
+          <EventBasicDetails
+            form={form}
+            bannerPreview={bannerPreview}
+            setBanner={setBanner}
+            setBannerPreview={setBannerPreview}
           />
 
           <Card>
@@ -211,14 +211,14 @@ export default function UpdateEvent() {
           <EventSettings form={form} />
 
           <Button type="submit" size="lg" className="w-full" disabled={isSubmitting}>
-             {isSubmitting ? (
-               <>
-                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                 Updating Event...
-               </>
-             ) : (
-               'Update Event'
-             )}
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Updating Event...
+              </>
+            ) : (
+              'Update Event'
+            )}
           </Button>
 
         </form>

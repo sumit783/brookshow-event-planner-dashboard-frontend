@@ -1,12 +1,13 @@
 import { Link } from 'react-router-dom';
-import { 
-  Calendar, 
-  Ticket, 
-  ScanLine, 
-  Users, 
-  Activity 
+import {
+  Calendar,
+  Ticket,
+  ScanLine,
+  Users,
+  Activity
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 
 export function OperationalCenter() {
   const operations = [
@@ -17,25 +18,38 @@ export function OperationalCenter() {
   ];
 
   return (
-    <Card className="border-none bg-gradient-to-br from-primary/10 to-violet-500/5 shadow-premium backdrop-blur-xl overflow-hidden relative">
-      <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
-        <Activity className="h-32 w-32" />
+    <Card className="border border-border/50 bg-background/40 shadow-premium backdrop-blur-xl overflow-hidden relative glass-ultra group/main">
+      <div className="absolute -top-12 -right-12 p-8 opacity-[0.03] pointer-events-none transition-transform duration-700 group-hover/main:scale-110 group-hover/main:rotate-12">
+        <Activity className="h-64 w-64" />
       </div>
-      <CardHeader>
-        <CardTitle>Control Center</CardTitle>
-        <CardDescription>Quick access to operational modules</CardDescription>
+
+      <CardHeader className="pb-4">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-primary shadow-glow">
+            <Activity className="h-5 w-5 text-primary-foreground drop-shadow-glow" />
+          </div>
+          <div>
+            <CardTitle className="text-xl font-bold tracking-tight">Operational Hub</CardTitle>
+            <CardDescription className="text-xs uppercase tracking-wider font-semibold opacity-70">Control Center</CardDescription>
+          </div>
+        </div>
       </CardHeader>
-      <CardContent className="grid gap-4 grid-cols-2">
+
+      <CardContent className="grid gap-4 grid-cols-2 mt-2">
         {operations.map((action, i) => (
           <Link key={i} to={action.to} className="group">
-            <Card className={`bg-background/40 border-white/5 backdrop-blur-md transition-all duration-300 hover:shadow-lg hover:-translate-y-1 ${action.color}`}>
+            <Card className={cn(
+              "bg-white/5 border-border/40 transition-all duration-300 hover:shadow-glow hover:-translate-y-1 overflow-hidden relative",
+              action.color
+            )}>
+              <div className="absolute inset-0 bg-gradient-primary opacity-0 group-hover:opacity-[0.03] transition-opacity" />
               <CardContent className="p-4 flex flex-col gap-3">
-                <div className="rounded-lg bg-white/5 p-2 w-fit group-hover:bg-primary/20 group-hover:text-primary transition-colors">
+                <div className="rounded-lg bg-white/5 p-2.5 w-fit group-hover:bg-gradient-primary group-hover:text-primary-foreground group-hover:shadow-glow transition-all duration-300">
                   <action.icon className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className="font-bold text-sm tracking-tight">{action.label}</p>
-                  <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-1">{action.desc}</p>
+                  <p className="font-bold text-sm tracking-tight text-foreground/90">{action.label}</p>
+                  <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-1 font-medium">{action.desc}</p>
                 </div>
               </CardContent>
             </Card>

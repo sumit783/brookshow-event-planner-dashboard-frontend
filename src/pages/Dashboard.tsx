@@ -1,6 +1,6 @@
-import { 
-  DollarSign, 
-  PlusCircle, 
+import {
+  DollarSign,
+  PlusCircle,
   Zap,
   Calendar,
   Ticket,
@@ -59,7 +59,7 @@ export default function Dashboard() {
   if (loading) {
     return (
       <div className="space-y-8 animate-pulse p-2">
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-6 grid-cols-2 lg:grid-cols-4">
           {[1, 2, 3, 4].map((i) => (
             <Card key={i} className="h-32 bg-muted/20 border-none shadow-sm" />
           ))}
@@ -87,19 +87,19 @@ export default function Dashboard() {
       </div>
 
       {/* Metrics Section */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
         {metrics.map((metric, i) => (
-          <MetricCard 
-            key={i} 
-            {...metric} 
-            icon={ICON_MAP[metric.icon] || Calendar} 
+          <MetricCard
+            key={i}
+            {...metric}
+            icon={ICON_MAP[metric.icon] || Calendar}
           />
         ))}
       </div>
 
       {/* Analytics Row */}
       <div className="grid gap-6 lg:grid-cols-3">
-        <RevenueForecast data={ revenueData} />
+        <RevenueForecast data={revenueData} />
         <AudienceSegments data={ticketDistribution} />
       </div>
 

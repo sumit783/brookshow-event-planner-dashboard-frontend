@@ -73,36 +73,40 @@ export default function EventBasicDetails({ form, bannerPreview, setBanner, setB
         <div className="space-y-2">
           <FormLabel>Event Banner</FormLabel>
           <div className="flex flex-col items-center justify-center rounded-md border border-dashed p-6 text-center">
-             {bannerPreview ? (
-              <div className="relative w-full max-w-sm aspect-video overflow-hidden rounded-lg">
-                <img src={bannerPreview} alt="Preview" className="h-full w-full object-cover" />
-                <Button
-                  type="button"
-                  variant="secondary"
-                  size="sm"
-                  className="absolute right-2 top-2"
-                  onClick={() => {
-                    setBanner(null);
-                    setBannerPreview(null);
-                  }}
-                >
-                  Change
-                </Button>
+            {bannerPreview ? (
+              <div className="relative w-full overflow-hidden rounded-lg border bg-muted/20">
+                <div className="aspect-video w-full">
+                  <img src={bannerPreview} alt="Preview" className="h-full w-full object-cover" />
+                </div>
+                <div className="absolute inset-x-0 bottom-0 bg-black/60 p-2 backdrop-blur-sm sm:static sm:bg-transparent sm:p-0">
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    className="w-full sm:absolute sm:right-2 sm:top-2 sm:w-auto"
+                    onClick={() => {
+                      setBanner(null);
+                      setBannerPreview(null);
+                    }}
+                  >
+                    Change Image
+                  </Button>
+                </div>
               </div>
             ) : (
               <label className="cursor-pointer space-y-2">
-                 <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-muted">
                   <Upload className="h-6 w-6 text-muted-foreground" />
-                 </div>
-                 <div className="text-sm text-muted-foreground">
-                   <span className="font-semibold text-primary">Click to upload</span> or drag and drop
-                 </div>
-                 <input
-                   type="file"
-                   accept="image/*"
-                   className="hidden"
-                   onChange={handleImageChange}
-                 />
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  <span className="font-semibold text-primary">Click to upload</span> or drag and drop
+                </div>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleImageChange}
+                />
               </label>
             )}
           </div>
