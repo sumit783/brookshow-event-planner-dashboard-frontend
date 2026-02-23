@@ -13,6 +13,8 @@ export interface User {
   id: string;
   email: string;
   name?: string;
+  phone?: string;
+  countryCode?: string;
   role?: string;
 }
 

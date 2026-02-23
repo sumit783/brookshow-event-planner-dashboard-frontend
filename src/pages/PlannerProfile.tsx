@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -19,6 +20,7 @@ export default function PlannerProfile() {
     const [loading, setLoading] = useState(true);
     const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
     const [detailsOpen, setDetailsOpen] = useState(false);
+    const navigate = useNavigate();
 
     const { data: bookedArtistsData, isLoading: loadingArtists } = useQuery({
         queryKey: ['booked-artists'],
@@ -71,7 +73,10 @@ export default function PlannerProfile() {
                     <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Organization Profile</h1>
                     <p className="text-sm md:text-base text-muted-foreground mt-1">Manage your organization details and view bookings</p>
                 </div>
-                <Button className="w-full sm:w-auto gap-2 h-9 text-sm">
+                <Button
+                    className="w-full sm:w-auto gap-2 h-9 text-sm"
+                    onClick={() => navigate('/profile/edit')}
+                >
                     <Edit className="h-4 w-4" /> Edit Profile
                 </Button>
             </div>

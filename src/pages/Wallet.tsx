@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -13,6 +13,12 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
+const truncateWords = (text: string, limit: number) => {
+    const words = text.split(/\s+/);
+    if (words.length <= limit) return text;
+    return words.slice(0, limit).join(' ') + '...';
+};
+
 export default function Wallet() {
     const [loading, setLoading] = useState(true);
     const [walletData, setWalletData] = useState<WalletData | null>(null);
@@ -25,6 +31,16 @@ export default function Wallet() {
     const [withdrawLoading, setWithdrawLoading] = useState(false);
     const [isBankDialogOpen, setIsBankDialogOpen] = useState(false);
     const [withdrawals, setWithdrawals] = useState<WithdrawalRequest[]>([]);
+    const [expandedNotes, setExpandedNotes] = useState<Set<string>>(new Set());
+
+    const toggleNote = (id: string) => {
+        setExpandedNotes(prev => {
+            const next = new Set(prev);
+            if (next.has(id)) next.delete(id);
+            else next.add(id);
+            return next;
+        });
+    };
 
     useEffect(() => {
         fetchWalletData();
@@ -277,6 +293,23 @@ export default function Wallet() {
                                                     </span>
                                                 )}
                                             </div>
+
+                                            {t.status === 'failed' && t.adminNote && (
+                                                <div className="mt-3 pt-3 border-t w-full text-xs">
+                                                    <p className="font-semibold text-destructive mb-1 text-[10px]">Reason for Rejection:</p>
+                                                    <p className="text-muted-foreground whitespace-pre-wrap text-[10px] leading-relaxed">
+                                                        {expandedNotes.has(t._id) ? t.adminNote : truncateWords(t.adminNote, 20)}
+                                                        {t.adminNote.split(/\s+/).length > 20 && (
+                                                            <button
+                                                                onClick={() => toggleNote(t._id)}
+                                                                className="ml-1 text-primary hover:underline font-medium"
+                                                            >
+                                                                {expandedNotes.has(t._id) ? "Read Less" : "Read More"}
+                                                            </button>
+                                                        )}
+                                                    </p>
+                                                </div>
+                                            )}
                                         </Card>
                                     ))}
                                 </div>
@@ -296,13 +329,13 @@ export default function Wallet() {
                                         <tbody className="divide-y divide-border">
                                             {filteredTransactions.map((t) => (
                                                 <tr key={t._id} className="bg-card hover:bg-muted/50 transition-colors">
-                                                    <td className="px-4 py-3 font-medium text-nowrap">
+                                                    <td className="px-4 py-3 font-medium text-nowrap align-top">
                                                         {format(new Date(t.createdAt), 'MMM dd, yyyy')}
                                                         <span className="block text-xs text-muted-foreground font-normal">
                                                             {format(new Date(t.createdAt), 'HH:mm')}
                                                         </span>
                                                     </td>
-                                                    <td className="px-4 py-3">
+                                                    <td className="px-4 py-3 align-top max-w-md">
                                                         <span className="font-medium block">{t.description}</span>
                                                         {t.source === 'withdraw' && (
                                                             <span className="text-xs text-muted-foreground block">
@@ -323,13 +356,29 @@ export default function Wallet() {
                                                                 Ref: {t.referenceId.substring(0, 8)}...
                                                             </span>
                                                         )}
+                                                        {t.status === 'failed' && t.adminNote && (
+                                                            <div className="mt-3 pt-3 border-t w-full text-xs">
+                                                                <p className="font-semibold text-destructive mb-1">Reason for Rejection:</p>
+                                                                <p className="text-muted-foreground whitespace-pre-wrap">
+                                                                    {expandedNotes.has(t._id) ? t.adminNote : truncateWords(t.adminNote, 20)}
+                                                                    {t.adminNote.split(/\s+/).length > 20 && (
+                                                                        <button
+                                                                            onClick={() => toggleNote(t._id)}
+                                                                            className="ml-1 text-primary hover:underline font-medium"
+                                                                        >
+                                                                            {expandedNotes.has(t._id) ? "Read Less" : "Read More"}
+                                                                        </button>
+                                                                    )}
+                                                                </p>
+                                                            </div>
+                                                        )}
                                                     </td>
-                                                    <td className="px-4 py-3">
+                                                    <td className="px-4 py-3 align-top">
                                                         <Badge variant="outline" className="capitalize">
                                                             {t.source}
                                                         </Badge>
                                                     </td>
-                                                    <td className="px-4 py-3">
+                                                    <td className="px-4 py-3 align-top">
                                                         <Badge
                                                             className={
                                                                 t.status === 'completed'
@@ -343,7 +392,7 @@ export default function Wallet() {
                                                             {t.status}
                                                         </Badge>
                                                     </td>
-                                                    <td className={`px-4 py-3 text-right font-bold ${t.type === 'credit' ? 'text-green-600' : 'text-red-600'}`}>
+                                                    <td className={`px-4 py-3 text-right font-bold align-top ${t.type === 'credit' ? 'text-green-600' : 'text-red-600'}`}>
                                                         {t.type === 'credit' ? '+' : '-'}₹{t.amount.toLocaleString()}
                                                     </td>
                                                 </tr>

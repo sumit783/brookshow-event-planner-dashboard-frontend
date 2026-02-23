@@ -342,6 +342,7 @@ export interface Transaction {
   referenceId: string | null;
   description: string;
   status: 'completed' | 'pending' | 'failed';
+  adminNote?: string;
   createdAt: string;
   updatedAt: string;
   __v: number;

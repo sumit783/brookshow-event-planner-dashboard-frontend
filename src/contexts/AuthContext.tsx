@@ -1,13 +1,13 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  isAuthenticated, 
-  getUser, 
-  clearAuth, 
-  setAuthTokens, 
+import {
+  isAuthenticated,
+  getUser,
+  clearAuth,
+  setAuthTokens,
   setUser,
   type User,
-  type AuthTokens 
+  type AuthTokens
 } from '@/services/auth';
 import { apiClient } from '@/services/apiClient';
 import { toast } from '@/hooks/use-toast';
@@ -94,12 +94,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const verifyOtp = async (email: string, otp: string, isLogin: boolean = true) => {
     try {
       const response = await apiClient.verifyOtp(email, otp, isLogin);
-      
+
       // Ensure role is planner
       if (response.user.role !== 'planner') {
         throw new Error('Invalid role. Only planners can access this dashboard.');
       }
-      
+
       // Store tokens
       setAuthTokens({
         jwtToken: response.jwtToken,
@@ -111,6 +111,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         id: response.user.id,
         email: response.user.email,
         name: response.user.name,
+        phone: response.user.phone,
+        countryCode: response.user.countryCode,
         role: response.user.role,
       };
       setUser(userData);

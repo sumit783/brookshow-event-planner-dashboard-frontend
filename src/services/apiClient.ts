@@ -105,6 +105,8 @@ export const apiClient = {
       id: string;
       email: string;
       name?: string;
+      phone?: string;
+      countryCode?: string;
       role: string;
     };
   }> {
@@ -154,6 +156,8 @@ export const apiClient = {
           id: data.user._id || data.user.id,
           email: data.user.email,
           name: data.user.displayName || data.user.name,
+          phone: data.user.phone,
+          countryCode: data.user.countryCode,
           role: data.user.role,
         },
       };
@@ -229,6 +233,37 @@ export const apiClient = {
     return request<any>(`/api/planner/profile`, {
       method: 'POST',
       body,
+    });
+  },
+
+  async updatePlannerProfile(data: {
+    organization: string;
+    logo?: File | string;
+  }): Promise<any> {
+    let body: any;
+    if (data.logo instanceof File) {
+      body = new FormData();
+      body.append('organization', data.organization);
+      body.append('logo', data.logo);
+    } else {
+      body = JSON.stringify(data);
+    }
+
+    return request<any>(`/api/planner/profile`, {
+      method: 'PUT',
+      body,
+    });
+  },
+
+  async updateUser(data: {
+    displayName: string;
+    email: string;
+    phone: string;
+    countryCode: string;
+  }): Promise<any> {
+    return request<any>(`/api/auth/update-user`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
     });
   },
 

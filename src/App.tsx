@@ -25,6 +25,7 @@ import Wallet from "./pages/Wallet";
 import Settings from "./pages/Settings";
 import CompleteProfile from "./pages/CompleteProfile";
 import UpdateEvent from "./pages/UpdateEvent";
+import EditProfile from "./pages/EditProfile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -75,6 +76,7 @@ const App = () => {
               <Route path="/reports" element={<Reports />} />
               <Route path="/wallet" element={<Wallet />} />
               <Route path="/profile" element={<PlannerProfile />} />
+              <Route path="/profile/edit" element={<EditProfile />} />
               <Route path="/settings" element={<Settings />} />
             </Route>
 
