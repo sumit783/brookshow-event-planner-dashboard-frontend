@@ -35,7 +35,7 @@ export function EmployeeList({ employees, loading, onUpdate }: EmployeeListProps
     setUpdatingId(employee._id);
     try {
       if (employee.isActive) {
-        await apiClient.deleteEmployee(employee._id);
+        await apiClient.updateEmployee(employee._id, { isActive: false });
         toast({
           title: 'Employee Deactivated',
           description: `Employee ${employee.name} has been deactivated.`,
