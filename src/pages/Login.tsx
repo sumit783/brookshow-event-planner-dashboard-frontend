@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Loader2, Mail, ArrowLeft, ExternalLink } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { config } from '@/config';
+import logo from '@/assets/logo.webp';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -53,10 +54,8 @@ export default function Login() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <div className="flex justify-center mb-4">
-            <div className="rounded-full bg-primary/10 p-3">
-              <Mail className="h-6 w-6 text-primary" />
-            </div>
+          <div className="flex justify-center mb-6">
+            <img src={logo} alt="BrookShow" className="h-18 w-auto object-contain" />
           </div>
           <CardTitle className="text-2xl text-center">Welcome Back</CardTitle>
           <CardDescription className="text-center">

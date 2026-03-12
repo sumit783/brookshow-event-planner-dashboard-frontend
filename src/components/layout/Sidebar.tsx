@@ -1,4 +1,5 @@
 import { NavLink, Link } from 'react-router-dom';
+import logo from '@/assets/logo.webp';
 import {
     Calendar,
     Wifi,
@@ -27,15 +28,9 @@ export function Sidebar({ onClose, className }: SidebarProps) {
     return (
         <aside className={cn("flex h-full flex-col border-r border-border/50 glass-ultra", className)}>
             {/* Logo & Close Button (Mobile) */}
-            <div className="flex h-16 items-center justify-between border-b border-sidebar-border/50 px-6">
+            <div className="flex h-20 items-center justify-between border-b border-sidebar-border/50 px-6">
                 <Link to="/" className="flex items-center gap-2 transition-smooth hover:scale-105" onClick={onClose}>
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-primary shadow-glow">
-                        <Calendar className="h-6 w-6 text-primary-foreground drop-shadow-glow" />
-                    </div>
-                    <div className="flex flex-col">
-                        <span className="text-sm font-bold text-sidebar-foreground">BrookShow</span>
-                        <span className="text-xs bg-gradient-accent bg-clip-text text-transparent">Event Planner</span>
-                    </div>
+                    <img src={logo} alt="BrookShow" className="h-12 md:h-18 w-auto object-contain" />
                 </Link>
                 {onClose && (
                     <Button variant="ghost" size="icon" className="lg:hidden" onClick={onClose}>

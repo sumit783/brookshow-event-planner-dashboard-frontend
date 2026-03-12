@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/select';
 import { Loader2, UserPlus, ArrowLeft, ExternalLink } from 'lucide-react';
 import { config } from '@/config';
+import logo from '@/assets/logo.webp';
 
 const COUNTRY_CODES = [
   { value: '+1', label: '+1 (US/CA)' },
@@ -82,10 +83,8 @@ export default function Signup() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <div className="flex justify-center mb-4">
-            <div className="rounded-full bg-primary/10 p-3">
-              <UserPlus className="h-6 w-6 text-primary" />
-            </div>
+          <div className="flex justify-center mb-6">
+            <img src={logo} alt="BrookShow" className="h-18 w-auto object-contain" />
           </div>
           <CardTitle className="text-2xl text-center">Create Account</CardTitle>
           <CardDescription className="text-center">
