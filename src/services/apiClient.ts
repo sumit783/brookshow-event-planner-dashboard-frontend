@@ -414,6 +414,12 @@ export const apiClient = {
     });
   },
 
+  async payAdvance(id: string): Promise<any> {
+    return request<any>(`/api/user/bookings/${id}/pay-advance`, {
+      method: 'POST',
+    });
+  },
+
   async verifyArtistBookingPayment(payload: {
     razorpay_order_id: string;
     razorpay_payment_id: string;
