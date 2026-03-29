@@ -140,6 +140,14 @@ All colors MUST be HSL.
   body {
     @apply bg-background text-foreground font-body;
   }
+
+  /* Fix for calendar icons in dark mode */
+  input[type="datetime-local"]::-webkit-calendar-picker-indicator,
+  input[type="date"]::-webkit-calendar-picker-indicator,
+  input[type="time"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    cursor: pointer;
+  }
 }
 
 @layer components {

@@ -77,7 +77,7 @@ export default function EventLocation({ form }: EventLocationProps) {
     setIsSearching(true);
     try {
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}`
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&addressdetails=1`
       );
       const data = await response.json();
 
@@ -90,12 +90,17 @@ export default function EventLocation({ form }: EventLocationProps) {
         form.setValue('lng', newLng, { shouldDirty: true });
         setCenter([newLat, newLng]);
 
-        // Auto-fill venue if it's descriptive
+        // Extract address components
+        const address = place.address || {};
+        const city = address.city || address.town || address.village || address.suburb || '';
+        const state = address.state || '';
         const displayName = place.display_name;
         const namePart = displayName.split(',')[0];
 
         form.setValue('venue', namePart, { shouldDirty: true });
         form.setValue('address', displayName, { shouldDirty: true });
+        if (city) form.setValue('city', city, { shouldDirty: true });
+        if (state) form.setValue('state', state, { shouldDirty: true });
 
         toast({
           title: "Location Found",
@@ -119,9 +124,31 @@ export default function EventLocation({ form }: EventLocationProps) {
     }
   };
 
-  const handleMapClick = (newLat: number, newLng: number) => {
+  const handleMapClick = async (newLat: number, newLng: number) => {
     form.setValue('lat', newLat, { shouldDirty: true });
     form.setValue('lng', newLng, { shouldDirty: true });
+
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${newLat}&lon=${newLng}&addressdetails=1`
+      );
+      const data = await response.json();
+
+      if (data && data.address) {
+        const address = data.address;
+        const city = address.city || address.town || address.village || address.suburb || '';
+        const state = address.state || '';
+        const displayName = data.display_name;
+        const venue = address.amenity || address.building || address.shop || address.office || displayName.split(',')[0];
+
+        if (venue) form.setValue('venue', venue, { shouldDirty: true });
+        form.setValue('address', displayName, { shouldDirty: true });
+        if (city) form.setValue('city', city, { shouldDirty: true });
+        if (state) form.setValue('state', state, { shouldDirty: true });
+      }
+    } catch (error) {
+      console.error('Reverse geocoding error:', error);
+    }
   };
 
   const getCurrentLocation = () => {
@@ -139,8 +166,7 @@ export default function EventLocation({ form }: EventLocationProps) {
       (position) => {
         const newLat = position.coords.latitude;
         const newLng = position.coords.longitude;
-        form.setValue('lat', newLat, { shouldDirty: true });
-        form.setValue('lng', newLng, { shouldDirty: true });
+        handleMapClick(newLat, newLng);
         setCenter([newLat, newLng]);
 
         toast({
@@ -190,8 +216,7 @@ export default function EventLocation({ form }: EventLocationProps) {
                     dragend: (e) => {
                       const marker = e.target;
                       const position = marker.getLatLng();
-                      form.setValue('lat', position.lat, { shouldDirty: true });
-                      form.setValue('lng', position.lng, { shouldDirty: true });
+                      handleMapClick(position.lat, position.lng);
                     },
                   }}
                 />
@@ -199,8 +224,7 @@ export default function EventLocation({ form }: EventLocationProps) {
             </MapContainer>
 
             {/* Free Search Box overlay */}
-            <form
-              onSubmit={handleSearch}
+            <div
               className="absolute top-3 left-3 right-12 z-[1000] sm:max-w-sm flex items-center gap-2"
             >
               <div className="relative flex-1">
@@ -211,17 +235,24 @@ export default function EventLocation({ form }: EventLocationProps) {
                   className="pl-9 bg-background/95 backdrop-blur-sm shadow-md h-9 border-border/50"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleSearch(e as any);
+                    }
+                  }}
                 />
               </div>
               <Button
-                type="submit"
+                type="button"
                 size="sm"
                 className="h-9 px-3 bg-primary/90 hover:bg-primary backdrop-blur-sm"
                 disabled={isSearching}
+                onClick={(e) => handleSearch(e as any)}
               >
                 {isSearching ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Go'}
               </Button>
-            </form>
+            </div>
 
             <Button
               type="button"
@@ -296,7 +327,7 @@ export default function EventLocation({ form }: EventLocationProps) {
           />
         </div>
 
-        <div className="flex items-end gap-4">
+        {/* <div className="flex items-end gap-4">
           <div className="grid flex-1 gap-6 md:grid-cols-2">
             <FormField
               control={form.control}
@@ -325,7 +356,7 @@ export default function EventLocation({ form }: EventLocationProps) {
               )}
             />
           </div>
-        </div>
+        </div> */}
         <p className="text-xs text-muted-foreground">
           Search for a venue above or click on the map to manually pin the location.
         </p>

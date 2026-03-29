@@ -31,6 +31,7 @@ const formSchema = z.object({
   title: z.string().min(2, 'Title must be at least 2 characters'),
   price: z.coerce.number().min(0, 'Price must be non-negative'),
   quantity: z.coerce.number().min(1, 'Quantity must be at least 1'),
+  allowedPersons: z.coerce.number().min(1, 'Allowed persons must be at least 1'),
   salesStart: z.string(),
   salesEnd: z.string(),
 });
@@ -54,6 +55,7 @@ export function AddTicketDialog({ eventId, onTicketAdded, ticket }: AddTicketDia
       title: '',
       price: 0,
       quantity: 100,
+      allowedPersons: 1,
       salesStart: '',
       salesEnd: '',
     },
@@ -86,6 +88,7 @@ export function AddTicketDialog({ eventId, onTicketAdded, ticket }: AddTicketDia
         title: ticket.title,
         price: ticket.price,
         quantity: ticket.quantity,
+        allowedPersons: ticket.allowedPersons || 1,
         salesStart: formatDateForInput(ticket.salesStart),
         salesEnd: formatDateForInput(ticket.salesEnd),
       });
@@ -94,6 +97,7 @@ export function AddTicketDialog({ eventId, onTicketAdded, ticket }: AddTicketDia
         title: '',
         price: 0,
         quantity: 100,
+        allowedPersons: 1,
         salesStart: '',
         salesEnd: '',
       });
@@ -109,6 +113,7 @@ export function AddTicketDialog({ eventId, onTicketAdded, ticket }: AddTicketDia
         title: values.title,
         price: values.price,
         quantity: values.quantity,
+        allowedPersons: values.allowedPersons,
         salesStart: new Date(values.salesStart).toISOString(),
         salesEnd: new Date(values.salesEnd).toISOString(),
       };
@@ -207,6 +212,20 @@ export function AddTicketDialog({ eventId, onTicketAdded, ticket }: AddTicketDia
                 )}
               />
             </div>
+
+            <FormField
+              control={form.control}
+              name="allowedPersons"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Allowed Persons per Ticket</FormLabel>
+                  <FormControl>
+                    <Input type="number" min="1" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <div className="grid grid-cols-2 gap-4">
               <FormField

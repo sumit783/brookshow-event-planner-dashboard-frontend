@@ -23,7 +23,7 @@ export function TicketList({ event, onTicketChanged }: TicketListProps) {
                 <div className="space-y-1">
                   <CardTitle className="text-base font-medium">{ticket.title}</CardTitle>
                   <CardDescription>
-                    ₹{ticket.price}
+                    ₹{ticket.price} • {ticket.allowedPersons} {ticket.allowedPersons > 1 ? 'Persons Per Ticket' : 'Person Per Ticket'}
                   </CardDescription>
                 </div>
                 <AddTicketDialog 

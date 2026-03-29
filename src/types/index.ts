@@ -36,6 +36,7 @@ export interface TicketType {
   sold: number;
   salesStart: string;
   salesEnd: string;
+  allowedPersons: number;
 }
 
 export interface Ticket {
