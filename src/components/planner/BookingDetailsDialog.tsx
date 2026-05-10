@@ -111,8 +111,8 @@ export function BookingDetailsDialog({ bookingId, open, onOpenChange }: BookingD
 
                         {/* Artist Info */}
                         <div className="flex gap-4 items-start">
-                            <img
-                                src={`${config.API_BASE_URI}${booking.artistId.profileImage}` || "/placeholder-artist.jpg"}
+                            <img 
+                                src={booking.artistId.profileImage?.startsWith('http') ? booking.artistId.profileImage : (`${config.API_BASE_URI}${booking.artistId.profileImage}` || "/placeholder-artist.jpg")}
                                 alt={booking.artistId.userId.displayName}
                                 className="w-20 h-20 rounded-lg object-cover"
                             />

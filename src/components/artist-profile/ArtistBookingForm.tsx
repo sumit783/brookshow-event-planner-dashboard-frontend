@@ -17,6 +17,27 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { DateRange } from 'react-day-picker';
 import { cn } from '@/lib/utils';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
+import markerIcon from 'leaflet/dist/images/marker-icon.png';
+import markerShadow from 'leaflet/dist/images/marker-shadow.png';
+
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconUrl: markerIcon,
+  iconRetinaUrl: markerIcon2x,
+  shadowUrl: markerShadow,
+});
+
+function MapClickHandler({ onClick }: { onClick: (lat: number, lng: number) => void }) {
+  useMapEvents({
+    click: (e) => onClick(e.latlng.lat, e.latlng.lng),
+  });
+  return null;
+}
 
 // Import from local UI components
 import {
@@ -46,6 +67,44 @@ export function ArtistBookingForm({ artist, events, services = [], onSuccess, on
     const [checkingAvailability, setCheckingAvailability] = useState(false);
     const [loading, setLoading] = useState(false);
     const [dialogOpen, setDialogOpen] = useState(false);
+    const [bookingType, setBookingType] = useState('select'); // 'select' | 'manual'
+    const [manualData, setManualData] = useState({
+        eventName: '',
+        eventAddress: '',
+        eventCity: '',
+        eventState: '',
+        eventCountry: '',
+        eventPincode: '',
+        eventLat: 19.076,
+        eventLng: 72.8777,
+        clientPhoneNumber: '',
+        clientName: ''
+    });
+
+    const handleMapClick = async (lat: number, lng: number) => {
+        setManualData(prev => ({ ...prev, eventLat: lat, eventLng: lng }));
+        try {
+            const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1`);
+            const data = await response.json();
+            if (data && data.address) {
+                const address = data.address;
+                const city = address.city || address.town || address.village || address.suburb || '';
+                const state = address.state || '';
+                const country = address.country || '';
+                const postcode = address.postcode || '';
+                setManualData(prev => ({
+                    ...prev,
+                    eventAddress: data.display_name,
+                    eventCity: city,
+                    eventState: state,
+                    eventCountry: country,
+                    eventPincode: postcode
+                }));
+            }
+        } catch (error) {
+            console.error('Reverse geocoding error:', error);
+        }
+    };
 
     // Fetch Events using react-query for the booking selector
     const { data: bookingEvents = [], isLoading: loadingEvents } = useQuery({
@@ -115,22 +174,37 @@ export function ArtistBookingForm({ artist, events, services = [], onSuccess, on
     }
 
     async function handleBooking() {
-        if (!selectedEventId || !availabilityData?.available) return;
+        if (bookingType === 'select' && !selectedEventId) return;
+        if (!availabilityData?.available) return;
 
         const selectedEvent = bookingEvents.find(e => (e.id === selectedEventId || e._id === selectedEventId));
 
         setLoading(true);
         try {
-            const bookingPayload = {
+            const bookingPayload: any = {
                 artistId: artist._id,
                 serviceId: selectedServiceId,
-                eventId: selectedEventId,
-                eventName: selectedEvent?.title || 'Unknown Event',
                 startAt: availabilityData.duration?.start || '',
                 endAt: availabilityData.duration?.end || '',
                 advanceAmount: availabilityData.advance || 0,
                 paidAmount: availabilityData.advance || 0
             };
+
+            if (bookingType === 'select') {
+                bookingPayload.eventId = selectedEventId;
+                bookingPayload.eventName = selectedEvent?.title || 'Unknown Event';
+            } else {
+                bookingPayload.eventName = manualData.eventName;
+                bookingPayload.eventAddress = manualData.eventAddress;
+                bookingPayload.eventCity = manualData.eventCity;
+                bookingPayload.eventState = manualData.eventState;
+                bookingPayload.eventCountry = manualData.eventCountry;
+                bookingPayload.eventPincode = manualData.eventPincode;
+                bookingPayload.eventLat = manualData.eventLat;
+                bookingPayload.eventLng = manualData.eventLng;
+                bookingPayload.clientPhoneNumber = manualData.clientPhoneNumber;
+                bookingPayload.clientName = manualData.clientName;
+            }
 
             const response = await apiClient.createArtistBookingPayment(bookingPayload);
             if (!response.success || !response.booking) throw new Error(response.message || 'Payment initiation failed');
@@ -291,10 +365,10 @@ export function ArtistBookingForm({ artist, events, services = [], onSuccess, on
                                 <Send className="mr-2 h-4 w-4" /> Book Now
                             </Button>
                         </DialogTrigger>
-                        <DialogContent className="sm:max-w-[450px]">
+                        <DialogContent className="sm:max-w-[550px] max-h-[90vh] overflow-y-auto">
                             <DialogHeader>
-                                <DialogTitle>Select Event</DialogTitle>
-                                <DialogDescription>Which event are you booking for?</DialogDescription>
+                                <DialogTitle>Book Artist</DialogTitle>
+                                <DialogDescription>Select an event or enter details manually.</DialogDescription>
                             </DialogHeader>
                             <div className="space-y-4 py-4">
                                 <div className="bg-muted/50 p-4 rounded-lg text-sm space-y-2">
@@ -307,21 +381,84 @@ export function ArtistBookingForm({ artist, events, services = [], onSuccess, on
                                         <span>₹{(availabilityData.advance ?? 0).toLocaleString()}</span>
                                     </div>
                                 </div>
-                                <div className="space-y-2">
-                                    <Label>Select Event</Label>
-                                    {loadingEvents ? <Loader2 className="h-6 w-6 animate-spin mx-auto" /> : (
-                                        <Select value={selectedEventId} onValueChange={setSelectedEventId}>
-                                            <SelectTrigger><SelectValue placeholder="Choose an event" /></SelectTrigger>
-                                            <SelectContent>
-                                                {bookingEvents.length > 0 ? bookingEvents.map(e => <SelectItem key={e._id || e.id} value={e._id || e.id}>{e.title}</SelectItem>) : <div className="p-2 text-center text-sm text-muted-foreground">No events found</div>}
-                                            </SelectContent>
-                                        </Select>
-                                    )}
-                                </div>
+
+                                <Tabs value={bookingType} onValueChange={setBookingType}>
+                                    <TabsList className="grid w-full grid-cols-2">
+                                        <TabsTrigger value="select">Select Event</TabsTrigger>
+                                        <TabsTrigger value="manual">Add Manually</TabsTrigger>
+                                    </TabsList>
+                                    <TabsContent value="select" className="space-y-4 pt-4">
+                                        <div className="space-y-2">
+                                            <Label>Select Event</Label>
+                                            {loadingEvents ? <Loader2 className="h-6 w-6 animate-spin mx-auto" /> : (
+                                                <Select value={selectedEventId} onValueChange={setSelectedEventId}>
+                                                    <SelectTrigger><SelectValue placeholder="Choose an event" /></SelectTrigger>
+                                                    <SelectContent>
+                                                        {bookingEvents.length > 0 ? bookingEvents.map(e => <SelectItem key={e._id || e.id} value={e._id || e.id}>{e.title}</SelectItem>) : <div className="p-2 text-center text-sm text-muted-foreground">No events found</div>}
+                                                    </SelectContent>
+                                                </Select>
+                                            )}
+                                        </div>
+                                    </TabsContent>
+                                    <TabsContent value="manual" className="space-y-4 pt-4">
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-2">
+                                                <Label>Event Name</Label>
+                                                <Input placeholder="Event Name" value={manualData.eventName} onChange={e => setManualData(p => ({...p, eventName: e.target.value}))} />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label>Client Name</Label>
+                                                <Input placeholder="Client Name" value={manualData.clientName} onChange={e => setManualData(p => ({...p, clientName: e.target.value}))} />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label>Client Phone</Label>
+                                                <Input placeholder="Phone Number" value={manualData.clientPhoneNumber} onChange={e => setManualData(p => ({...p, clientPhoneNumber: e.target.value}))} />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label>Pincode</Label>
+                                                <Input placeholder="Pincode" value={manualData.eventPincode} onChange={e => setManualData(p => ({...p, eventPincode: e.target.value}))} />
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label>Location Map (Click to select)</Label>
+                                            <div className="h-[200px] rounded-md overflow-hidden border">
+                                                <MapContainer center={[manualData.eventLat, manualData.eventLng]} zoom={13} style={{ height: '100%', width: '100%' }}>
+                                                    <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                                                    <MapClickHandler onClick={handleMapClick} />
+                                                    <Marker position={[manualData.eventLat, manualData.eventLng]} />
+                                                </MapContainer>
+                                            </div>
+                                            <div className="text-xs text-muted-foreground flex justify-between">
+                                                <span>Lat: {manualData.eventLat.toFixed(4)}</span>
+                                                <span>Lng: {manualData.eventLng.toFixed(4)}</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label>Event Address</Label>
+                                            <Input placeholder="Full Address" value={manualData.eventAddress} onChange={e => setManualData(p => ({...p, eventAddress: e.target.value}))} />
+                                        </div>
+                                        <div className="grid grid-cols-3 gap-4">
+                                            <div className="space-y-2">
+                                                <Label>City</Label>
+                                                <Input placeholder="City" value={manualData.eventCity} onChange={e => setManualData(p => ({...p, eventCity: e.target.value}))} />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label>State</Label>
+                                                <Input placeholder="State" value={manualData.eventState} onChange={e => setManualData(p => ({...p, eventState: e.target.value}))} />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label>Country</Label>
+                                                <Input placeholder="Country" value={manualData.eventCountry} onChange={e => setManualData(p => ({...p, eventCountry: e.target.value}))} />
+                                            </div>
+                                        </div>
+                                    </TabsContent>
+                                </Tabs>
                             </div>
                             <div className="flex gap-3 mt-2">
                                 <Button variant="outline" className="flex-1" onClick={() => setDialogOpen(false)} disabled={loading}>Cancel</Button>
-                                <Button className="flex-1" onClick={handleBooking} disabled={!selectedEventId || loading}>
+                                <Button className="flex-1" onClick={handleBooking} disabled={(bookingType === 'select' && !selectedEventId) || (bookingType === 'manual' && !manualData.eventName) || loading}>
                                     {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Confirm & Pay"}
                                 </Button>
                             </div>

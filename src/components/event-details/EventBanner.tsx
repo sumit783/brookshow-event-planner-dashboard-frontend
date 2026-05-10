@@ -11,7 +11,7 @@ export function EventBanner({ event }: EventBannerProps) {
     <div className="relative aspect-[21/9] w-full md:w-4/5 mx-auto overflow-hidden rounded-xl bg-muted/30 border">
       {event.bannerUrl ? (
         <img
-          src={`${config.API_BASE_URI}${event.bannerUrl}`}
+          src={event.bannerUrl?.startsWith('http') ? event.bannerUrl : `${config.API_BASE_URI}${event.bannerUrl}`}
           alt={event.title}
           className="h-full w-full object-cover"
         />

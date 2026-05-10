@@ -106,7 +106,7 @@ export function BookedArtistCard({ booking, onViewDetails }: BookedArtistCardPro
                 {/* Artist Image Side */}
                 <div className="w-full sm:w-40 md:w-48 h-40 sm:h-auto relative bg-muted shrink-0">
                     <img
-                        src={`${config.API_BASE_URI}${booking.artistId.profileImage}` || "/placeholder-artist.jpg"}
+                        src={booking.artistId.profileImage?.startsWith('http') ? booking.artistId.profileImage : (`${config.API_BASE_URI}${booking.artistId.profileImage}` || "/placeholder-artist.jpg")}
                         alt={booking.artistId.userId.displayName}
                         className="w-full h-full object-cover"
                     />

@@ -9,7 +9,9 @@ interface ArtistProfileHeaderProps {
 
 export function ArtistProfileHeader({ artist }: ArtistProfileHeaderProps) {
   const imageUrl = artist.media.find(m => m.isCover)?.url || artist.profileImage;
-  const fullImageUrl = imageUrl ? `${config.API_BASE_URI}${imageUrl}` : null;
+  const fullImageUrl = imageUrl 
+    ? (imageUrl.startsWith('http') ? imageUrl : `${config.API_BASE_URI}${imageUrl}`) 
+    : null;
 
   return (
     <div className="relative h-64 md:h-80 w-full overflow-hidden rounded-xl">
@@ -19,6 +21,7 @@ export function ArtistProfileHeader({ artist }: ArtistProfileHeaderProps) {
           <img 
             src={fullImageUrl} 
             alt={artist.userId?.displayName} 
+            loading="lazy"
             className="h-full w-full object-cover blur-sm opacity-50"
           />
         )}
@@ -31,7 +34,7 @@ export function ArtistProfileHeader({ artist }: ArtistProfileHeaderProps) {
           {/* Profile Image */}
           <div className="h-24 w-24 md:h-32 md:w-32 rounded-full border-4 border-background overflow-hidden shadow-xl bg-background">
              {fullImageUrl ? (
-                <img src={fullImageUrl} alt={artist.userId?.displayName} className="h-full w-full object-cover" />
+                <img src={fullImageUrl} alt={artist.userId?.displayName} loading="lazy" className="h-full w-full object-cover" />
              ) : (
                 <div className="h-full w-full flex items-center justify-center bg-muted text-muted-foreground text-3xl font-bold">
                   {artist.userId?.displayName.charAt(0)}

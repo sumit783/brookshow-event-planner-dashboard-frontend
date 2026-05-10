@@ -29,7 +29,7 @@ export function EventCard({ event }: EventCardProps) {
   }
 
   const status = getEventStatus(event);
-  
+
   // Calculate stats from ticketData
   const stats = (event.ticketData || []).reduce(
     (acc, ticket) => ({

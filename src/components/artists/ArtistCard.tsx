@@ -12,7 +12,9 @@ interface ArtistCardProps {
 
 export function ArtistCard({ artist }: ArtistCardProps) {
   // Construct image URL properly
-  const imageUrl = artist.image ? `${config.API_BASE_URI}${artist.image}` : null;
+  const imageUrl = artist.image 
+    ? (artist.image.startsWith('http') ? artist.image : `${config.API_BASE_URI}${artist.image}`)
+    : null;
 
   return (
     <Card className="group overflow-hidden border-none shadow-lg bg-card/50 backdrop-blur-sm transition-all hover:scale-[1.02] hover:shadow-xl hover:bg-card/80">
