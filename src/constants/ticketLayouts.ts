@@ -1,0 +1,151 @@
+import { TicketLayoutPreset } from '@/types';
+
+export const TICKET_LAYOUT_PRESETS: TicketLayoutPreset[] = [
+  // 1. Stub / Raffle Tickets
+  {
+    id: 'stub-standard',
+    category: 'stub',
+    categoryLabel: 'Stub / Tear-off',
+    name: 'Standard Tear-off Stub',
+    dimensionsInch: '5.63″ × 1.97″',
+    dimensionsMm: '143 × 50 mm',
+    widthMm: 143,
+    heightMm: 50,
+    aspectRatio: 5.63 / 1.97, // ~2.85:1
+    description: 'Classic horizontal ticket with a perforated stub section for entrance validation & raffle tracking.',
+    hasStub: true,
+    stubWidthPercent: 26,
+    orientation: 'horizontal',
+    suggestedUse: 'Concerts, Theater, School Events & Door Entries',
+  },
+  {
+    id: 'stub-raffle-6x2',
+    category: 'stub',
+    categoryLabel: 'Stub / Tear-off',
+    name: 'Long Raffle Ticket',
+    dimensionsInch: '6.00″ × 2.00″',
+    dimensionsMm: '152 × 51 mm',
+    widthMm: 152,
+    heightMm: 51,
+    aspectRatio: 6.0 / 2.0, // 3:1
+    description: 'Extended format for raffles with detachable sections, double numbering, and participant details.',
+    hasStub: true,
+    stubWidthPercent: 28,
+    orientation: 'horizontal',
+    suggestedUse: 'Charity Raffles, Prize Draws & Giveaways',
+  },
+
+  // 2. Medium / Large Tickets
+  {
+    id: 'medium-5.5x2.75',
+    category: 'medium_large',
+    categoryLabel: 'Medium & Large',
+    name: 'Standard Event Pass',
+    dimensionsInch: '5.50″ × 2.75″',
+    dimensionsMm: '140 × 70 mm',
+    widthMm: 140,
+    heightMm: 70,
+    aspectRatio: 5.5 / 2.75, // 2:1
+    description: 'Generous branding area, clear sponsor logos, event schedules, and prominent QR security codes.',
+    hasStub: true,
+    stubWidthPercent: 24,
+    orientation: 'horizontal',
+    suggestedUse: 'Club Nights, Live Shows, Expos & Festivals',
+  },
+  {
+    id: 'large-8.5x2.75',
+    category: 'medium_large',
+    categoryLabel: 'Medium & Large',
+    name: 'Wide Feature Pass',
+    dimensionsInch: '8.50″ × 2.75″',
+    dimensionsMm: '216 × 70 mm',
+    widthMm: 216,
+    heightMm: 70,
+    aspectRatio: 8.5 / 2.75, // ~3.09:1
+    description: 'Ultra-wide format providing ample space for multi-stage schedule, sponsors, QR and seat numbers.',
+    hasStub: true,
+    stubWidthPercent: 22,
+    orientation: 'horizontal',
+    suggestedUse: 'Multi-Day Festivals, Sports Tournaments & Arena Events',
+  },
+
+  // 3. Premium / VIP Tickets
+  {
+    id: 'vip-8.5x3.5',
+    category: 'vip',
+    categoryLabel: 'Premium & VIP',
+    name: 'VIP Executive Pass',
+    dimensionsInch: '8.50″ × 3.50″',
+    dimensionsMm: '216 × 89 mm',
+    widthMm: 216,
+    heightMm: 89,
+    aspectRatio: 8.5 / 3.5, // ~2.43:1
+    description: 'Luxurious dimensions suited for VIP lounges, premium backstage access, and exclusive galas.',
+    hasStub: true,
+    stubWidthPercent: 20,
+    orientation: 'horizontal',
+    suggestedUse: 'VIP Galas, Luxury Summits & Backstage Passes',
+  },
+  {
+    id: 'vip-lanyard-4x6',
+    category: 'vip',
+    categoryLabel: 'Premium & VIP',
+    name: 'Lanyard Badge / Keepsake',
+    dimensionsInch: '4.00″ × 6.00″',
+    dimensionsMm: '102 × 152 mm',
+    widthMm: 102,
+    heightMm: 152,
+    aspectRatio: 4.0 / 6.0, // 0.67:1 (vertical)
+    description: 'Vertical commemorative badge formatted for lanyard pouches, badges, and keepsake souvenirs.',
+    hasStub: false,
+    orientation: 'vertical',
+    suggestedUse: 'Conferences, All-Access Lanyards & Keepsakes',
+  },
+
+  // 4. Specialized Formats
+  {
+    id: 'special-square-3.5x3.5',
+    category: 'specialized',
+    categoryLabel: 'Specialized Formats',
+    name: 'Modern Square Pass',
+    dimensionsInch: '3.50″ × 3.50″',
+    dimensionsMm: '89 × 89 mm',
+    widthMm: 89,
+    heightMm: 89,
+    aspectRatio: 1.0, // 1:1
+    description: 'Modern square profile tailored for intimate gatherings, workshops, tastings, and art exhibits.',
+    hasStub: false,
+    orientation: 'square',
+    suggestedUse: 'Art Galleries, Food Tastings & Workshops',
+  },
+  {
+    id: 'special-roll-1.83x2',
+    category: 'specialized',
+    categoryLabel: 'Specialized Formats',
+    name: 'Compact Roll Ticket',
+    dimensionsInch: '1.83″ × 2.00″',
+    dimensionsMm: '46 × 51 mm',
+    widthMm: 46,
+    heightMm: 51,
+    aspectRatio: 1.83 / 2.0, // ~0.915:1
+    description: 'Compact voucher size for high-speed counter dispensing, drink coupons, and ride admissions.',
+    hasStub: false,
+    orientation: 'vertical',
+    suggestedUse: 'Carnivals, Drink Vouchers & Token Entries',
+  },
+  {
+    id: 'special-roll-2x3.25',
+    category: 'specialized',
+    categoryLabel: 'Specialized Formats',
+    name: 'Standard Roll Ticket',
+    dimensionsInch: '2.00″ × 3.25″',
+    dimensionsMm: '51 × 83 mm',
+    widthMm: 51,
+    heightMm: 83,
+    aspectRatio: 2.0 / 3.25, // ~0.615:1
+    description: 'Vertical roll-style ticket with clear QR scan code, date stamping, and ticket numbering.',
+    hasStub: false,
+    orientation: 'vertical',
+    suggestedUse: 'Cinema, Local Gigs & Cloakroom Tokens',
+  },
+];

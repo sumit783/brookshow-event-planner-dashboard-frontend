@@ -350,3 +350,20 @@ All colors MUST be HSL.
     transform: translateY(-5px);
   }
 }
+
+/* Force browser & PDF generator to render background graphics, images, and colors */
+@media print {
+  *, *:before, *:after {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
+  img {
+    max-width: 100% !important;
+    display: inline-block !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
+

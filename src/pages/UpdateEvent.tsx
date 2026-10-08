@@ -80,7 +80,10 @@ export default function UpdateEvent() {
         lng: event.lng || 72.8777,
       });
       if (event.bannerUrl) {
-        setBannerPreview(`${config.API_BASE_URI}${event.bannerUrl}`);
+        const previewUrl = event.bannerUrl.startsWith('http://') || event.bannerUrl.startsWith('https://') || event.bannerUrl.startsWith('blob:') || event.bannerUrl.startsWith('data:')
+          ? event.bannerUrl
+          : `${config.API_BASE_URI}${event.bannerUrl.startsWith('/') ? '' : '/'}${event.bannerUrl}`;
+        setBannerPreview(previewUrl);
       }
     }
   }, [event, form]);

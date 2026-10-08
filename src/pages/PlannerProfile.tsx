@@ -93,7 +93,16 @@ export default function PlannerProfile() {
                     <CardContent className="space-y-6">
                         <div className="flex flex-col items-center text-center p-4 bg-muted/20 rounded-xl">
                             <Avatar className="h-20 w-20 md:h-24 md:w-24 mb-4 border-2 border-primary/20">
-                                <AvatarImage src={config.API_BASE_URI + profile.logoUrl} alt={profile.organization} />
+                                <AvatarImage
+                                    src={
+                                        profile.logoUrl
+                                            ? profile.logoUrl.startsWith('http://') || profile.logoUrl.startsWith('https://') || profile.logoUrl.startsWith('data:')
+                                                ? profile.logoUrl
+                                                : `${config.API_BASE_URI}${profile.logoUrl.startsWith('/') ? '' : '/'}${profile.logoUrl}`
+                                            : undefined
+                                    }
+                                    alt={profile.organization}
+                                />
                                 <AvatarFallback className="text-2xl bg-primary/10 text-primary">
                                     {profile.organization.substring(0, 2).toUpperCase()}
                                 </AvatarFallback>

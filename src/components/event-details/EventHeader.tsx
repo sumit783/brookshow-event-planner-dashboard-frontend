@@ -34,6 +34,12 @@ export function EventHeader({ event, status }: EventHeaderProps) {
         </div>
       </div>
       <div className="flex items-center gap-2 sm:ml-auto">
+        <Link to={`/offline-tickets?eventId=${event._id}`} className="flex-1 sm:flex-none">
+          <Button variant="outline" className="w-full sm:w-auto bg-primary/10 border-primary/30 text-primary hover:bg-primary/20">
+            <span className="hidden xs:inline">Offline Tickets</span>
+            <span className="xs:hidden">Print</span>
+          </Button>
+        </Link>
         <Link to={`/events/edit/${event._id}`} className="flex-1 sm:flex-none">
           <Button variant="outline" className="w-full sm:w-auto">
             <Edit className="mr-2 h-4 w-4" />

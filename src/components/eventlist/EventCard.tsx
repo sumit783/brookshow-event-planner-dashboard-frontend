@@ -45,12 +45,20 @@ export function EventCard({ event }: EventCardProps) {
       {/* Event Image or Placeholder */}
       <div className="relative h-48 overflow-hidden bg-gradient-to-br from-primary/10 to-accent/10">
         {event.bannerUrl ? (
-          <img src={`${config.API_BASE_URI}${event.bannerUrl}`} alt={event.title} className="h-full w-full object-cover" />
-        ) : (
-          <div className="flex h-full items-center justify-center">
-            <Calendar className="h-16 w-16 text-muted-foreground/30" />
-          </div>
-        )}
+          <img
+            src={event.bannerUrl.startsWith('http://') || event.bannerUrl.startsWith('https://') || event.bannerUrl.startsWith('blob:') || event.bannerUrl.startsWith('data:') ? event.bannerUrl : `${config.API_BASE_URI}${event.bannerUrl.startsWith('/') ? '' : '/'}${event.bannerUrl}`}
+            alt={event.title}
+            className="h-full w-full object-cover"
+            onError={(e) => {
+              // Fallback to placeholder if image fails to load
+              e.currentTarget.style.display = 'none';
+              e.currentTarget.parentElement?.querySelector('.fallback-icon')?.classList.remove('hidden');
+            }}
+          />
+        ) : null}
+        <div className={`flex h-full items-center justify-center ${event.bannerUrl ? 'hidden fallback-icon' : ''}`}>
+          <Calendar className="h-16 w-16 text-muted-foreground/30" />
+        </div>
         <div className="absolute right-2 top-2">
           <Badge variant={status.variant}>{status.label}</Badge>
         </div>

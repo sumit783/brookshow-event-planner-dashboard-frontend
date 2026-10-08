@@ -15,6 +15,7 @@ import EventsList from "./pages/EventsList";
 import CreateEvent from "./pages/CreateEvent";
 import EventDetails from "./pages/EventDetails";
 import TicketSales from "./pages/TicketSales";
+import OfflineTickets from "./pages/OfflineTickets";
 import ScannerPage from "./pages/ScannerPage";
 import Artists from "./pages/Artists";
 import ArtistProfile from "./pages/ArtistProfile";
@@ -69,6 +70,7 @@ const App = () => {
               <Route path="/events/edit/:id" element={<UpdateEvent />} />
               <Route path="/events/:id" element={<EventDetails />} />
               <Route path="/tickets" element={<TicketSales />} />
+              <Route path="/offline-tickets" element={<OfflineTickets />} />
               <Route path="/scanner" element={<ScannerPage />} />
               <Route path="/artists" element={<Artists />} />
               <Route path="/artists/:id" element={<ArtistProfile />} />

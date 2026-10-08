@@ -55,6 +55,69 @@ export interface Ticket {
   scannerId?: string;
 }
 
+export type TicketLayoutCategory = 'stub' | 'medium_large' | 'vip' | 'specialized';
+
+export interface TicketLayoutPreset {
+  id: string;
+  category: TicketLayoutCategory;
+  name: string;
+  categoryLabel: string;
+  dimensionsInch: string;
+  dimensionsMm: string;
+  aspectRatio: number; // width / height
+  widthMm?: number;
+  heightMm?: number;
+  description: string;
+  hasStub: boolean;
+  stubWidthPercent?: number; // e.g., 25% for tear-off stub
+  orientation: 'horizontal' | 'vertical' | 'square';
+  suggestedUse: string;
+}
+
+export interface OfflineTicketDesignConfig {
+  layoutId: string;
+  bgImageUrl?: string;
+  bgFitMode: 'cover' | 'contain' | 'fill';
+  bgZoom: number;
+  bgOffsetX: number; // in percentage -50 to 50
+  bgOffsetY: number; // in percentage -50 to 50
+  bgColor: string;
+  accentColor: string;
+  textColor: string;
+  headerText?: string;
+  tagline?: string;
+  showEventName: boolean;
+  showEventDate: boolean;
+  showVenue: boolean;
+  showTicketType: boolean;
+  showPrice: boolean;
+  showQrCode: boolean;
+  showTicketNumber: boolean;
+  customTerms?: string;
+  stubText?: string;
+}
+
+export interface GeneratedOfflineTicket {
+  ticketId: string;
+  ticketNumber: string;
+  eventId: string;
+  eventTitle: string;
+  eventDate: string;
+  eventVenue: string;
+  ticketTypeId?: string;
+  ticketTypeName: string;
+  ticketPrice: number;
+  qrPayload: string;
+  qrDataUrl: string;
+  buyerName?: string;
+  buyerPhone?: string;
+  persons?: number;
+  scannedPersons?: number;
+  isValide?: boolean;
+  scanned?: boolean;
+  createdAt: string;
+}
+
 export interface Artist {
   id: string;
   name: string;
